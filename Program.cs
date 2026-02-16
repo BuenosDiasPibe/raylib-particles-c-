@@ -10,10 +10,10 @@ internal static class Program
     {
         Raylib.InitWindow(WindowProps.WIDTH, WindowProps.HEIGHT, WindowProps.NAME);
         Random r = new();
-        ParticleSystem ps = new(10000);
+        ParticleSystem ps = new(100000);
 
         ParticleEmmition emmiter = new(new(100, 1f, 0.5f));
-        emmiter.EmmiterPos = new(30,30, 10,10);
+        emmiter.EmmiterPos = new(WindowProps.WIDTH/2-30,WindowProps.HEIGHT/2-30, 10,10);
         emmiter.size = new(10);
         emmiter.sizeVariation = new(30);
         emmiter.colorBegin = Raylib.ColorFromHSV((float)(r.NextDouble()*360), 1, 1);
@@ -28,8 +28,7 @@ internal static class Program
 
         while (!Raylib.WindowShouldClose())
         {
-            if(Raylib.IsMouseButtonDown(MouseButton.Left)) {
-                emmiter.EmmiterPos.Position = Raylib.GetMousePosition()-new Vector2(30);
+            for(int i = 0; i < 25; i++){
                 ps.Emmit();
             }
             ps.Update();
@@ -39,6 +38,7 @@ internal static class Program
             Raylib.ClearBackground(Color.Black);
             ps.Draw();
             Raylib.DrawText(particleCounter, 0,0,50, Color.White);
+            Raylib.DrawText(Raylib.GetFrameTime().ToString(), 0,50,50, Color.White);
 
             Raylib.EndDrawing();
         }
