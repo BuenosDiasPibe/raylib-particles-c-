@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "Ae2T71Qo/mI=",
+  "success": true,
+  "projectFilePath": "/home/clumpl/Documentos/Raylib_Folders/raylib_particles/raylib_particles.csproj",
+  "expectedPackageFiles": [
+    "/home/clumpl/.nuget/packages/raylib-cs/7.0.2/raylib-cs.7.0.2.nupkg.sha512",
+    "/home/clumpl/.nuget/packages/microsoft.aspnetcore.app.ref/10.0.3/microsoft.aspnetcore.app.ref.10.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}
