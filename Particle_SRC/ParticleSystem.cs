@@ -20,11 +20,14 @@ public class ParticleSystem
     }
     public void CreateEmmitor(ParticleEmmition emmitor) {
         if(particleEmmiterIndex + emmitor.particleListLenght > listIndex){
-            throw new IndexOutOfRangeException("range requested by emmitor is bigger than what ammount of particles");
+            //throw new IndexOutOfRangeException("range requested by emmitor is bigger than what ammount of particles");
+            Console.WriteLine("range requested by emmitor is bigger than what ammount of particles");
+            return;
         }
         emmitor.setEmmiter(particleEmmiterIndex);
         particleEmmiterIndex += emmitor.particleListLenght;
         emmiters.Add(emmitor);
+        Console.WriteLine($"particleEmmiterIndex: {particleEmmiterIndex} - emmiter.parActive: {emmitor.particleActive}");
     }
 
     public void Update() {

@@ -1,7 +1,7 @@
 using Raylib_cs;
 using System.Numerics;
 namespace raylib_particles;
-public class ParticleEmmition(HSV hsvVariation) {
+public class ParticleEmmition(uint particleListLenght,HSV hsvVariation) {
     public Rectangle EmmiterPos;
     public Vector2 size, sizeVariation;
     public Color colorBegin;
@@ -11,7 +11,7 @@ public class ParticleEmmition(HSV hsvVariation) {
     public Vector2 velocity, velocityVariation;
 
     public uint particleListIndex = 0;
-    public uint particleListLenght = 1;
+    public uint particleListLenght = particleListLenght;
     public int particleActive = 0;
 
     Random rand = new();
@@ -21,7 +21,8 @@ public class ParticleEmmition(HSV hsvVariation) {
     }
 
     public void Emmit(List<Particle> particles) {
-        particleActive = (particleActive+1) % (int)(particleListIndex+particleListLenght) + (int)particleListIndex;
+
+        particleActive = ((int)particleListIndex+particleActive+1) % (int)(particleListIndex+particleListLenght);
         Particle p = particles[particleActive];
 
         p.active = true;

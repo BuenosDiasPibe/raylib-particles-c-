@@ -1,11 +1,12 @@
 using Raylib_cs;
 namespace raylib_particles;
 
-public class WindowProps {
+public static  class WindowProps {
     public const int WIDTH = 720;
     public const int HEIGHT = 900;
     public const string NAME = "Particles";
     public const int FPS = 60;
+    public static Color bgClear = Color.Black; // this would probably not explode
 }
 
 public class HSV(float hue, float sat, float bri) {
