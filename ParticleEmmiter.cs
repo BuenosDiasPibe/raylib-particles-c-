@@ -21,7 +21,7 @@ public class ParticleEmmition(HSV hsvVariation) {
     }
 
     public void Emmit(List<Particle> particles) {
-        particleActive = (particleActive+1) % (int)(particleListIndex+particleListLenght);
+        particleActive = (particleActive+1) % (int)(particleListIndex+particleListLenght) + (int)particleListIndex;
         Particle p = particles[particleActive];
 
         p.active = true;
@@ -29,7 +29,7 @@ public class ParticleEmmition(HSV hsvVariation) {
         p.remainLifeTime = p.LifeTime;
         p.colorBegin = colorBegin;
         p.colorEnd = colorEnd;
-        p.velocity = velocity+ new Vector2(
+        p.velocity = velocity + new Vector2(
                     (float)(rand.NextDouble()*velocityVariation.X),
                     (float)(rand.NextDouble()*velocityVariation.Y)
         );

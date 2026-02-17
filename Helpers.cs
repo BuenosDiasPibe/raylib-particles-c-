@@ -2,8 +2,8 @@ using Raylib_cs;
 namespace raylib_particles;
 
 public class WindowProps {
-    public const int WIDTH = 1280;
-    public const int HEIGHT = 720;
+    public const int WIDTH = 720;
+    public const int HEIGHT = 900;
     public const string NAME = "Particles";
     public const int FPS = 60;
 }

@@ -33,8 +33,10 @@ public class ParticleSystem
         }
     }
     public void Draw() {
-        foreach(ParticleEmmition emmit in emmiters) {
-            emmit.Draw(particles);
+        for(int i = 0; i < emmiters.Count; i++) {
+            ParticleEmmition e = emmiters[i];
+            Raylib.DrawText($"{i}", (int)e.EmmiterPos.Position.X, (int)e.EmmiterPos.Position.Y, 60, e.colorBegin);
+            e.Draw(particles);
         }
     }
     public void Emmit() {
