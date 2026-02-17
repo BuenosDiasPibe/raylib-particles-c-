@@ -3,7 +3,7 @@ using System.Numerics;
 namespace raylib_particles;
 public class ParticleSystem
 {
-    public List<Particle> particles {get; private set;}= new();
+    public Particle[] particles {get; private set;}
     public uint listIndex = 0;
     public List<ParticleEmmition> emmiters {get; private set;} = new();
 
@@ -11,10 +11,10 @@ public class ParticleSystem
 
     public ParticleSystem(uint ammount_particles) {
         listIndex = ammount_particles;
-        particles.EnsureCapacity((int)listIndex);
+        particles = new Particle[ammount_particles];
         for(int i = 0; i < ammount_particles; i++) {
             Particle p = new();
-            particles.Add(p);
+            particles[i] = p;
         }
     }
     public void CreateEmmitor(ParticleEmmition emmitor) {
@@ -22,7 +22,7 @@ public class ParticleSystem
     }
 
     public void Update() {
-        for(int count = 0; count < particles.Count; count++) {
+        for(int count = 0; count < particles.Length; count++) {
             var p = particles[count];
             if(!p.active) continue;
 
@@ -44,7 +44,7 @@ public class ParticleSystem
     public void Draw() {
         foreach(Particle p in particles) {
             if(!p.active) continue;
-            Color lerp = Color.Lerp(p.colorEnd, p.colorBegin, (float)(p.remainLifeTime/p.LifeTime));
+            Color lerp = Raylib.ColorLerp(p.colorEnd, p.colorBegin, (float)(p.remainLifeTime/p.LifeTime));
             Raylib.DrawRectangleRec(p.rec, lerp);
         }
     }

@@ -13,7 +13,7 @@ public class ParticleEmmition(HSV hsvVariation)
 
     Random rand = new();
 
-    public void Emmit(List<Particle> particles, ref uint listIndex) {
+    public void Emmit(Particle[] particles, ref uint listIndex) {
         Particle p = particles[(int)listIndex-1];
         p.active = true;
         p.LifeTime = lifeTime+(float)(rand.NextDouble()*lifeTimeVariation);
@@ -34,6 +34,6 @@ public class ParticleEmmition(HSV hsvVariation)
 
         particles[(int)listIndex-1] = p;
 
-        listIndex = ((listIndex) % (uint)particles.Capacity)+1;
+        listIndex = ((listIndex) % (uint)particles.Length)+1;
     }
 }
