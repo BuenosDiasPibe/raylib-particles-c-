@@ -5,6 +5,7 @@ public class WindowProps {
     public const int WIDTH = 1280;
     public const int HEIGHT = 720;
     public const string NAME = "Particles";
+    public const int FPS = 60;
 }
 
 public class HSV(float hue, float sat, float bri) {

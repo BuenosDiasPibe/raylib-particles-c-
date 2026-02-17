@@ -22,20 +22,28 @@ public class ParticleSystem
     }
 
     public void Update() {
-        foreach(Particle p in particles) {
+        for(int count = 0; count < particles.Count; count++) {
+            var p = particles[count];
             if(!p.active) continue;
+
+
+            p.remainLifeTime -= Raylib.GetFrameTime();
+            Rectangle r = p.rec;
+            r.Position += p.velocity * new Vector2(Raylib.GetFrameTime());
+            p.rec = r;
 
             if(p.remainLifeTime <= 0) {
                 p.active = false;
+                particles[count] = p;
                 continue;
             }
 
-            p.remainLifeTime -= Raylib.GetFrameTime();
-            p.rec.Position += p.velocity * new Vector2(Raylib.GetFrameTime());
+            particles[count] = p;
         }
     }
     public void Draw() {
         foreach(Particle p in particles) {
+            if(!p.active) continue;
             Color lerp = Color.Lerp(p.colorEnd, p.colorBegin, (float)(p.remainLifeTime/p.LifeTime));
             Raylib.DrawRectangleRec(p.rec, lerp);
         }

@@ -13,7 +13,7 @@ public class ParticleEmmition(HSV hsvVariation)
 
     Random rand = new();
 
-    public void Emmit(List<Particle> particles, ref uint listIndex) { // why the ref?? dont ask
+    public void Emmit(List<Particle> particles, ref uint listIndex) {
         Particle p = particles[(int)listIndex-1];
         p.active = true;
         p.LifeTime = lifeTime+(float)(rand.NextDouble()*lifeTimeVariation);
@@ -24,11 +24,13 @@ public class ParticleEmmition(HSV hsvVariation)
                     (float)(rand.NextDouble()*velocityVariation.X),
                     (float)(rand.NextDouble()*velocityVariation.Y)
         );
-        p.rec.Position = new Vector2(
+        var r = p.rec;
+        r.Position = new Vector2(
                 rand.Next((int)EmmiterPos.X, (int)(EmmiterPos.Width+EmmiterPos.X)),
                 rand.Next((int)EmmiterPos.Y, (int)(EmmiterPos.Height+EmmiterPos.Y))
         );
-        p.rec.Size = new Vector2((float)(size.X+rand.NextDouble()*sizeVariation.X), (float)(size.Y+rand.NextDouble()*sizeVariation.Y));
+        r.Size = new Vector2((float)(size.X+rand.NextDouble()*sizeVariation.X), (float)(size.Y+rand.NextDouble()*sizeVariation.Y));
+        p.rec = r;
 
         particles[(int)listIndex-1] = p;
 
