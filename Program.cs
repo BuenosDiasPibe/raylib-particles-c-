@@ -1,6 +1,5 @@
-﻿using System.Numerics;
-using Raylib_cs;
-
+﻿using Raylib_cs;
+using raylib_particles.Scenes;
 namespace raylib_particles;
 
 internal static class Program

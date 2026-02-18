@@ -1,6 +1,6 @@
 using Raylib_cs;
 using System.Numerics;
-namespace raylib_particles;
+namespace raylib_particles.Particle_SRC;
 public class ParticleEmmition(uint particleListLenght,HSV hsvVariation) {
     public Rectangle EmmiterPos;
     public Vector2 size, sizeVariation;
@@ -8,7 +8,8 @@ public class ParticleEmmition(uint particleListLenght,HSV hsvVariation) {
     public Color colorEnd;
     public HSV hsvVariation = hsvVariation;
     public float lifeTime, lifeTimeVariation;
-    public Vector2 velocity, velocityVariation;
+    public Vector2 velocity;
+    public Vector2 gravity;
 
     public uint particleListIndex = 0;
     public uint particleListLenght = particleListLenght;
@@ -22,7 +23,8 @@ public class ParticleEmmition(uint particleListLenght,HSV hsvVariation) {
 
     public void Emmit(List<Particle> particles) {
 
-        particleActive = ((int)particleListIndex+particleActive+1) % (int)(particleListIndex+particleListLenght);
+        particleActive = (particleActive+1) % (int)(particleListIndex+particleListLenght);
+        if(particleActive == 0) particleActive = (int)particleListIndex; // i hate my puppy life
         Particle p = particles[particleActive];
 
         p.active = true;
@@ -30,10 +32,7 @@ public class ParticleEmmition(uint particleListLenght,HSV hsvVariation) {
         p.remainLifeTime = p.LifeTime;
         p.colorBegin = colorBegin;
         p.colorEnd = colorEnd;
-        p.velocity = velocity + new Vector2(
-                    (float)(rand.NextDouble()*velocityVariation.X),
-                    (float)(rand.NextDouble()*velocityVariation.Y)
-        );
+        p.velocity = velocity;
         var r = p.rec;
         r.Position = new Vector2(
                 rand.Next((int)EmmiterPos.X, (int)(EmmiterPos.Width+EmmiterPos.X)),
@@ -46,13 +45,15 @@ public class ParticleEmmition(uint particleListLenght,HSV hsvVariation) {
     }
 
     public void Update(List<Particle> particles) {
+        float delta = Raylib.GetFrameTime();
         for(int count = (int)particleListIndex; count < particleListLenght+particleListIndex; count++) {
             if(!particles[count].active) continue;
             var p = particles[count];
 
-            p.remainLifeTime -= Raylib.GetFrameTime();
+            p.remainLifeTime -= delta;
+            p.velocity -= gravity * delta;
             Rectangle r = p.rec;
-            r.Position += p.velocity * new Vector2(Raylib.GetFrameTime());
+            r.Position += p.velocity * delta;
             p.rec = r;
 
             if(p.remainLifeTime <= 0) {

@@ -1,4 +1,4 @@
-namespace raylib_particles;
+namespace raylib_particles.Scenes;
 public class SceneManager {
     private Stack<IScene> scenes = new();
 

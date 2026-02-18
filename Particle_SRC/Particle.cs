@@ -1,6 +1,6 @@
 using Raylib_cs;
 using System.Numerics;
-namespace raylib_particles;
+namespace raylib_particles.Particle_SRC;
 public struct Particle() {
     public Rectangle rec {get; set;}
     public Vector2 velocity;

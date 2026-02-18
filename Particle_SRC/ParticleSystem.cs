@@ -1,6 +1,6 @@
 using Raylib_cs;
 using System.Numerics;
-namespace raylib_particles;
+namespace raylib_particles.Particle_SRC;
 public class ParticleSystem
 {
     public List<Particle> particles {get; private set;} = new();
@@ -27,7 +27,6 @@ public class ParticleSystem
         emmitor.setEmmiter(particleEmmiterIndex);
         particleEmmiterIndex += emmitor.particleListLenght;
         emmiters.Add(emmitor);
-        Console.WriteLine($"particleEmmiterIndex: {particleEmmiterIndex} - emmiter.parActive: {emmitor.particleActive}");
     }
 
     public void Update() {
@@ -36,9 +35,7 @@ public class ParticleSystem
         }
     }
     public void Draw() {
-        for(int i = 0; i < emmiters.Count; i++) {
-            ParticleEmmition e = emmiters[i];
-            Raylib.DrawText($"{i}", (int)e.EmmiterPos.Position.X, (int)e.EmmiterPos.Position.Y, 60, e.colorBegin);
+        foreach(var e in emmiters) {
             e.Draw(particles);
         }
     }

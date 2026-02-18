@@ -5,7 +5,7 @@ public static  class WindowProps {
     public const int WIDTH = 720;
     public const int HEIGHT = 900;
     public const string NAME = "Particles";
-    public const int FPS = 60;
+    public const int FPS = 75;
     public static Color bgClear = Color.Black; // this would probably not explode
 }
 
