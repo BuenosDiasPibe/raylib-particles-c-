@@ -2,10 +2,10 @@ using Raylib_cs;
 namespace raylib_particles;
 
 public static  class WindowProps {
-    public const int WIDTH = 720;
+    public const int WIDTH = 1280;
     public const int HEIGHT = 900;
     public const string NAME = "Particles";
-    public const int FPS = 75;
+    public const int FPS = 120;
     public static Color bgClear = Color.Black; // this would probably not explode
 }
 
@@ -22,4 +22,5 @@ public static class Helper{
         Color colorHSV = color2.toColor();
         return Raylib.ColorAlphaBlend(colorHSV, color1, Color.White);
     }
+    public static Rectangle invert {get; private set;}= new Rectangle(0,0,WindowProps.WIDTH, -WindowProps.HEIGHT);
 }

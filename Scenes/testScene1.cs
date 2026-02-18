@@ -6,7 +6,7 @@ namespace raylib_particles.Scenes;
 
 public class testScene1 : IScene
 {
-    ParticleSystem ps = new(10000);
+    ParticleSystem ps = new(100000);
     Random r = new();
 
     public void LoadContent() {
@@ -16,13 +16,9 @@ public class testScene1 : IScene
     public void Update(float delta) {
         if(Raylib.IsMouseButtonPressed(MouseButton.Left)) {
             Vector2 p = Raylib.GetMousePosition();
-            ps.CreateEmmitor(test_create_bunch_of_stuff(new Rectangle(p, new Vector2(1)), new(r.NextSingle()*50*r.Next(-10,10), r.NextSingle()*10*r.Next(-10,20))));
+            ps.CreateEmmitor(test_create_bunch_of_stuff(new Rectangle(p, new Vector2(1)), new(r.NextSingle()*50*r.Next(-10,20), r.NextSingle()*10*r.Next(-10,35))));
         }
-        foreach(var e in ps.emmiters){
-            e.velocity.X = (float)(100*Math.Cos((delta+Math.Tau*Math.PI)/Math.Tau*2));
-            e.velocity.Y = (float)(100*Math.Cos(delta/Math.Tau*3));
-        }
-        ps.Emmit();
+        ps.Emmit(1);
         ps.Update();
     }
     public void Draw(float delta) {
@@ -40,18 +36,21 @@ public class testScene1 : IScene
     public ParticleEmmition test_create_bunch_of_stuff(Rectangle pos, Vector2 velocity){
         Random r = new();
         ParticleEmmition emmiter = new(
-            particleListLenght: 100, 
+            particleListLenght: 500,
             hsvVariation: new(100, 1f, 0.5f)
         );
-        emmiter.particleListLenght = 100;
         emmiter.EmmiterPos = pos;
-        emmiter.size = new(5);
+        emmiter.sizeStart = new(5);
+        emmiter.sizeEnd = new(1);
         emmiter.sizeVariation = new(0);
-        emmiter.colorBegin = Raylib.ColorFromHSV((float)(r.NextDouble()*360), 1, 1);
+        emmiter.colorBegin = Raylib.ColorFromHSV(r.NextSingle()*360, 1, 1);
+        emmiter.colorEnd = Raylib.ColorFromHSV(r.NextSingle()*360, 1, 1);
+        emmiter.colorEnd.A = 10;
         emmiter.velocity = velocity;
-        emmiter.gravity = new Vector2(0,-50);
-        emmiter.lifeTime = 1f;
-        emmiter.lifeTimeVariation = 6;
+        emmiter.velocityVariation = new(500,300);
+        emmiter.gravity = new Vector2(0,-100);
+        emmiter.lifeTime = 5f;
+        emmiter.lifeTimeVariation = 10;
         return emmiter;
     }
 }

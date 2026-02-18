@@ -39,9 +39,9 @@ public class ParticleSystem
             e.Draw(particles);
         }
     }
-    public void Emmit() {
+    public void Emmit(int ammount) {
         foreach(ParticleEmmition m in emmiters) {
-            m.Emmit(particles);
+            m.Emmit(particles, ammount);
         }
     }
     public int particles_active_count() {
