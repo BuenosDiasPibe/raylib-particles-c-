@@ -23,11 +23,11 @@ public class ParticleEmmition(uint particleListLenght,HSV hsvVariation) {
 
     public void Emmit(List<Particle> particles, int ammount) {
         for(int particle = 0; particle < ammount; particle++){
-
             particleActive = (particleActive+1) % (int)(particleListIndex+particleListLenght);
             if(particleActive == 0) particleActive = (int)particleListIndex; // i hate my puppy life
 
             Particle p = particles[particleActive];
+            if(p.active) continue;
 
             p.active = true;
             p.LifeTime = lifeTime+(float)(rand.NextDouble()*lifeTimeVariation * rand.Next(-1,1));
@@ -56,22 +56,16 @@ public class ParticleEmmition(uint particleListLenght,HSV hsvVariation) {
     public void Update(List<Particle> particles) {
         float delta = Raylib.GetFrameTime();
         for(int count = (int)particleListIndex; count < particleListLenght+particleListIndex; count++) {
-            if(!particles[count].active) continue;
             var p = particles[count];
+            if(!p.active) continue;
 
             p.remainLifeTime -= delta;
             p.velocity -= gravity * delta;
             Rectangle r = p.rec;
             r.Position += p.velocity * delta;
             r.Size = Vector2.Lerp(sizeStart, sizeEnd, 1-(float)(p.remainLifeTime/p.LifeTime));
-            
             p.rec = r;
-
-            if(p.remainLifeTime <= 0) {
-                p.active = false;
-                particles[count] = p;
-                continue;
-            }
+            p.active = p.remainLifeTime >=0;
 
             particles[count] = p;
         }
@@ -82,6 +76,6 @@ public class ParticleEmmition(uint particleListLenght,HSV hsvVariation) {
             if(!p.active) continue;
             Color lerp = Raylib.ColorLerp(p.colorBegin, p.colorEnd, 1-(float)(p.remainLifeTime/p.LifeTime));
             Raylib.DrawRectangleRec(p.rec, lerp);
-            }
+        }
     }
 }

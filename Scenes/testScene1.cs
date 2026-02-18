@@ -4,16 +4,20 @@ using raylib_particles.Particle_SRC;
 
 namespace raylib_particles.Scenes;
 
-public class testScene1 : IScene
+public class testScene1(SceneManager sceneManager) : IScene
 {
     ParticleSystem ps = new(100000);
     Random r = new();
+    SceneManager sceneManager = sceneManager;
 
     public void LoadContent() {
         WindowProps.bgClear = new(28,28,28,255);
     }
 
     public void Update(float delta) {
+        if(Raylib.IsKeyPressed(KeyboardKey.Enter)) {
+            sceneManager.RemoveScene();
+        }
         if(Raylib.IsMouseButtonPressed(MouseButton.Left)) {
             Vector2 p = Raylib.GetMousePosition();
             ps.CreateEmmitor(test_create_bunch_of_stuff(new Rectangle(p, new Vector2(1)), new(r.NextSingle()*50*r.Next(-10,20), r.NextSingle()*10*r.Next(-10,35))));
@@ -29,14 +33,13 @@ public class testScene1 : IScene
     }
 
     public void UnloadContent() {
-        ps.emmiters.Clear();
-        ps.particles.Clear();
+        ps.Unload();
     }
 
     public ParticleEmmition test_create_bunch_of_stuff(Rectangle pos, Vector2 velocity){
         Random r = new();
         ParticleEmmition emmiter = new(
-            particleListLenght: 500,
+            particleListLenght: 1000,
             hsvVariation: new(100, 1f, 0.5f)
         );
         emmiter.EmmiterPos = pos;
@@ -49,8 +52,8 @@ public class testScene1 : IScene
         emmiter.velocity = velocity;
         emmiter.velocityVariation = new(500,300);
         emmiter.gravity = new Vector2(0,-100);
-        emmiter.lifeTime = 5f;
-        emmiter.lifeTimeVariation = 10;
+        emmiter.lifeTime = 2f;
+        emmiter.lifeTimeVariation = 1;
         return emmiter;
     }
 }

@@ -8,6 +8,7 @@ public class SceneManager {
     }
 
     public IScene RemoveScene(){
+        scenes.Peek().UnloadContent();
         return scenes.Pop();
     }
 

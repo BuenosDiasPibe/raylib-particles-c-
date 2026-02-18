@@ -47,4 +47,8 @@ public class ParticleSystem
     public int particles_active_count() {
         return particles.Where(p => p.active).Count();
     }
+    public void Unload(){
+        particles.Clear();
+        emmiters.Clear();
+    }
 }

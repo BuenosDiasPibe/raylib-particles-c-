@@ -13,7 +13,7 @@ internal static class Program
         Raylib.SetTargetFPS(WindowProps.FPS);
 
         SceneManager sceneManager = new();
-        sceneManager.AddScene(new testScene1());
+        sceneManager.AddScene(new Menu(sceneManager));
         ScreenshotTool st = new();
 
 
