@@ -1,11 +1,11 @@
 using Raylib_cs;
 using System.Numerics;
 namespace raylib_particles.Particle_SRC;
-public class ParticleEmmition(uint particleListLenght,HSV hsvVariation) {
+public class ParticleEmmition(uint particleListLenght) {
     public Rectangle EmmiterPos;
     public Color colorBegin;
     public Color colorEnd;
-    public HSV hsvVariation = hsvVariation;
+    public HSV? hsvVariation;
     public Vector2 sizeStart, sizeEnd,  sizeVariation;
     public Vector2 velocity, velocityVariation;
     public Vector2 gravity;
@@ -53,8 +53,7 @@ public class ParticleEmmition(uint particleListLenght,HSV hsvVariation) {
         }
     }
 
-    public void Update(List<Particle> particles) {
-        float delta = Raylib.GetFrameTime();
+    public void Update(List<Particle> particles, float delta) {
         for(int count = (int)particleListIndex; count < particleListLenght+particleListIndex; count++) {
             var p = particles[count];
             if(!p.active) continue;
@@ -65,12 +64,14 @@ public class ParticleEmmition(uint particleListLenght,HSV hsvVariation) {
             r.Position += p.velocity * delta;
             r.Size = Vector2.Lerp(sizeStart, sizeEnd, 1-(float)(p.remainLifeTime/p.LifeTime));
             p.rec = r;
-            p.active = p.remainLifeTime >=0;
+            if(p.remainLifeTime <= 0){
+                p.active = false;
+            }
 
             particles[count] = p;
         }
     }
-    public void Draw(List<Particle> particles){
+    public void Draw(List<Particle> particles, float delta){
         for(int count = (int)particleListIndex; count < particleListLenght+particleListIndex; count++) {
             Particle p = particles[count];
             if(!p.active) continue;

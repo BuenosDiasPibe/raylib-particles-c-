@@ -29,14 +29,14 @@ public class ParticleSystem
         emmiters.Add(emmitor);
     }
 
-    public void Update() {
+    public void Update(float delta) {
         foreach(ParticleEmmition emiter in emmiters) {
-            emiter.Update(particles);
+            emiter.Update(particles, delta);
         }
     }
-    public void Draw() {
+    public void Draw(float delta) {
         foreach(var e in emmiters) {
-            e.Draw(particles);
+            e.Draw(particles, delta);
         }
     }
     public void Emmit(int ammount) {

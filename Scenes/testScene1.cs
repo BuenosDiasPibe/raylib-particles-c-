@@ -23,10 +23,10 @@ public class testScene1(SceneManager sceneManager) : IScene
             ps.CreateEmmitor(test_create_bunch_of_stuff(new Rectangle(p, new Vector2(1)), new(r.NextSingle()*50*r.Next(-10,20), r.NextSingle()*10*r.Next(-10,35))));
         }
         ps.Emmit(1);
-        ps.Update();
+        ps.Update(delta);
     }
     public void Draw(float delta) {
-        ps.Draw();
+        ps.Draw(delta);
         Raylib.DrawText("p: "+ps.particles_active_count().ToString() + " - c: "+ps.particles.Capacity, 0,0,50, Color.White);
         Raylib.DrawText("fps: "+Raylib.GetFPS().ToString(), 0,50,50, Color.White);
         Raylib.DrawText($"emmiters: {ps.emmiters.Count}", 0, 100, 25, Color.White);
@@ -38,10 +38,7 @@ public class testScene1(SceneManager sceneManager) : IScene
 
     public ParticleEmmition test_create_bunch_of_stuff(Rectangle pos, Vector2 velocity){
         Random r = new();
-        ParticleEmmition emmiter = new(
-            particleListLenght: 1000,
-            hsvVariation: new(100, 1f, 0.5f)
-        );
+        ParticleEmmition emmiter = new(1000);
         emmiter.EmmiterPos = pos;
         emmiter.sizeStart = new(5);
         emmiter.sizeEnd = new(1);

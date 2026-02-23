@@ -3,24 +3,32 @@ using raylib_particles.Particle_SRC;
 namespace raylib_particles.Scenes;
 
 public class Test2(SceneManager manager) : IScene {
-    ParticleSystem  st = new(1000);
+    const int MAX_PARTICLES = 350_000;
+    ParticleSystem  st = new(MAX_PARTICLES);
     Random r = new();
     SceneManager sceneManager = manager;
+    ParticleEmmition emmitor = new(MAX_PARTICLES);
+    float time = 0;
+
+    Color c1 = Raylib.GetColor(0xCC241DFF);
+    Color c2 = Raylib.GetColor(0xb8bb26FF);
+
 
     public void LoadContent() {
         //WindowProps.bgClear = new Color((int)0xFB, (int)0xF1, (int)0xC7, 255);
-        var emmitor = new ParticleEmmition(1000, new HSV(r.NextSingle()*360, 1,1));
-        emmitor.EmmiterPos = new(WindowProps.WIDTH/2, WindowProps.HEIGHT/2, 0,0);
+        emmitor.EmmiterPos = new(
+            0,
+            0,
+            1,
+            1
+        );
         emmitor.sizeStart = new(10);
-        emmitor.sizeEnd = new(0);
-        emmitor.sizeVariation = new(5);
+        emmitor.sizeEnd = new();
+        emmitor.sizeVariation = new(9);
         emmitor.colorBegin = Color.Red;
         emmitor.colorEnd = new();
-        emmitor.velocity = new(0,100);
-        emmitor.velocityVariation = new(100, 50);
-        emmitor.gravity = new(0,100);
-        emmitor.lifeTime = 2;
-        emmitor.lifeTimeVariation = 1;
+        emmitor.lifeTime = 2f;
+        emmitor.lifeTimeVariation = 0.5f;
 
         st.CreateEmmitor(emmitor);
         st.Emmit(10);
@@ -30,11 +38,27 @@ public class Test2(SceneManager manager) : IScene {
         if(Raylib.IsKeyPressed(KeyboardKey.Enter)) {
             sceneManager.RemoveScene();
         }
+        time += delta * 20;
+
+        // emmitor.EmmiterPos.Y = WindowProps.HEIGHT/2-(float)(100*Math.Sin(time/Math.PI));
+        emmitor.EmmiterPos.Y = WindowProps.HEIGHT/2-200*(float)(Math.Sin(time/Math.PI)/Math.PI);
+        
+        emmitor.EmmiterPos.X = WindowProps.WIDTH/2-100*(float)(Math.Cos(time/Math.PI)/Math.PI);
+
+        emmitor.velocity = emmitor.EmmiterPos.Position;
+        emmitor.velocityVariation = -emmitor.EmmiterPos.Position;
+        emmitor.gravity = -emmitor.EmmiterPos.Position;
+
+        emmitor.colorBegin = Raylib.ColorLerp(
+                c1,
+                c2,
+                (float)(Math.Sin(time/Math.PI))
+        );
         st.Emmit(10);
-        st.Update();
+        st.Update(delta);
     }
     public void Draw(float delta) {
-        st.Draw();
+        st.Draw(delta);
         Raylib.DrawText("fps: "+Raylib.GetFPS().ToString(), 0,50,50, Color.White);
     }
     public void UnloadContent()

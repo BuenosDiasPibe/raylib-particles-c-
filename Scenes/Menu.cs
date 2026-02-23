@@ -9,6 +9,9 @@ public class Menu(SceneManager sceneManager) : IScene
     Rectangle btn2 = new(WindowProps.WIDTH/2-200, WindowProps.HEIGHT/2, 400, 100);
     Color btn1Color = Color.White;
     Color btn2Color = Color.Red;
+
+    Rectangle btn3 = new(WindowProps.WIDTH/2-200,WindowProps.HEIGHT/2+100, 400,100);
+    Color btn3Color = Color.Green;
     SceneManager sceneManager = sceneManager;
 
     public void LoadContent() {
@@ -19,6 +22,8 @@ public class Menu(SceneManager sceneManager) : IScene
         Vector2 mousePos = Raylib.GetMousePosition();
         btn1Color = Color.White;
         btn2Color = Color.Red;
+        btn3Color = Color.Green;
+
         if(Raylib.CheckCollisionPointRec(mousePos, btn1)){
             btn1Color.A = 127;
             if(Raylib.IsMouseButtonPressed(MouseButton.Left)){
@@ -31,11 +36,18 @@ public class Menu(SceneManager sceneManager) : IScene
                 sceneManager.AddScene(new Test2(sceneManager));
             }
         }
+        if(Raylib.CheckCollisionPointRec(mousePos,btn3)){
+            btn3Color.A = 127;
+            if(Raylib.IsMouseButtonPressed(MouseButton.Left)){
+                sceneManager.AddScene(new test3(sceneManager));
+            }
+        }
     }
 
     public void Draw(float delta) {
         Raylib.DrawRectangleRec(btn1, btn1Color);
         Raylib.DrawRectangleRec(btn2, btn2Color);
+        Raylib.DrawRectangleRec(btn3, btn3Color);
     }
     public void UnloadContent() {
     }
