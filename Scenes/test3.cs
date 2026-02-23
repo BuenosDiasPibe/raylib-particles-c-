@@ -1,3 +1,4 @@
+using System.Numerics;
 using Raylib_cs;
 using raylib_particles.Particle_SRC;
 
@@ -13,7 +14,7 @@ public class test3(SceneManager manager) : IScene {
         WindowProps.bgClear = Raylib.GetColor(0x3C3836FF);
 
         ParticleEmmition e1 = new(max_particles);
-        e1.EmmiterPos = new(WindowProps.WIDTH/2,WindowProps.HEIGHT/2, 1,1);
+        e1.EmmiterPos = new(WindowProps.WIDTH/2,WindowProps.HEIGHT/2, 10,10);
 
         e1.sizeStart = new(10);
         e1.sizeEnd = new();
@@ -22,9 +23,9 @@ public class test3(SceneManager manager) : IScene {
         e1.colorBegin = Raylib.GetColor(0x98971AFF);
         e1.colorEnd = new();
 
-        e1.velocity = new(200,100);
+        e1.velocity = new(0);
         e1.velocityVariation = new(400,200);
-        e1.gravity = new(0,-100);
+        //e1.gravity = new(-100,0);
 
         e1.lifeTime = 1.5f;
         e1.lifeTimeVariation = 1f;
@@ -32,7 +33,14 @@ public class test3(SceneManager manager) : IScene {
     }
 
     public void Update(float delta) {
-        st.Emmit(1);
+        if(Raylib.IsKeyPressed(KeyboardKey.Enter)){
+            manager.RemoveScene();
+        }
+        Vector2 mousePos = Raylib.GetMousePosition();
+        if(Raylib.IsMouseButtonPressed(MouseButton.Left)){
+            st.emmiters[0].EmmiterPos.Position = mousePos;
+            st.Emmit(1000);
+        }
         st.Update(delta);
     }
 

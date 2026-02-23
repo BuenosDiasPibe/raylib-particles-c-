@@ -1,3 +1,4 @@
+using System.Numerics;
 using Raylib_cs;
 using raylib_particles.Particle_SRC;
 namespace raylib_particles.Scenes;
@@ -19,8 +20,8 @@ public class Test2(SceneManager manager) : IScene {
         emmitor.EmmiterPos = new(
             0,
             0,
-            1,
-            1
+            WindowProps.WIDTH,
+            WindowProps.HEIGHT
         );
         emmitor.sizeStart = new(10);
         emmitor.sizeEnd = new();
@@ -40,19 +41,22 @@ public class Test2(SceneManager manager) : IScene {
         }
         time += delta * 20;
 
-        // emmitor.EmmiterPos.Y = WindowProps.HEIGHT/2-(float)(100*Math.Sin(time/Math.PI));
-        emmitor.EmmiterPos.Y = WindowProps.HEIGHT/2-200*(float)(Math.Sin(time/Math.PI)/Math.PI);
-        
-        emmitor.EmmiterPos.X = WindowProps.WIDTH/2-100*(float)(Math.Cos(time/Math.PI)/Math.PI);
-
-        emmitor.velocity = emmitor.EmmiterPos.Position;
-        emmitor.velocityVariation = -emmitor.EmmiterPos.Position;
-        emmitor.gravity = -emmitor.EmmiterPos.Position;
+        Vector2 hi = new(
+            WindowProps.HEIGHT/2-200*(float)(Math.Sin(time/Math.PI)/Math.PI),
+            WindowProps.WIDTH/2-100*(float)(Math.Cos(time/Math.PI)/Math.PI)
+        );
+        emmitor.velocityVariation = hi;
+        emmitor.gravity = -hi;
 
         emmitor.colorBegin = Raylib.ColorLerp(
                 c1,
                 c2,
                 (float)(Math.Sin(time/Math.PI))
+        );
+        emmitor.colorEnd = Raylib.ColorLerp(
+                c1,
+                c2,
+                (float)(Math.Cos(time/Math.PI))
         );
         st.Emmit(10);
         st.Update(delta);

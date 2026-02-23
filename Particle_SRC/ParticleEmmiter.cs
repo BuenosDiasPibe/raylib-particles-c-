@@ -15,6 +15,8 @@ public class ParticleEmmition(uint particleListLenght) {
     public uint particleListLenght = particleListLenght;
     public int particleActive = 0;
 
+    private readonly int[] sign = [-1,1];
+
     Random rand = new();
     public void setEmmiter(uint index) {
         particleListIndex = index;
@@ -30,13 +32,13 @@ public class ParticleEmmition(uint particleListLenght) {
             if(p.active) continue;
 
             p.active = true;
-            p.LifeTime = lifeTime+(float)(rand.NextDouble()*lifeTimeVariation * rand.Next(-1,1));
+            p.LifeTime = lifeTime+(float)(rand.NextDouble()*lifeTimeVariation * rand.GetItems(sign,1)[0]);
             p.remainLifeTime = p.LifeTime;
             p.colorBegin = colorBegin;
             p.colorEnd = colorEnd;
             p.velocity = velocity + new Vector2(
-                    rand.NextSingle()*velocityVariation.X * rand.Next(-1,1),
-                    rand.NextSingle()*velocityVariation.Y * rand.Next(-1,1)
+                    rand.NextSingle()*velocityVariation.X * rand.GetItems(sign, 1)[0],
+                    rand.NextSingle()*velocityVariation.Y * rand.GetItems(sign, 1)[0]
             );
             var r = p.rec; // idk how to do this without a temp variable
             r.Position = new Vector2(

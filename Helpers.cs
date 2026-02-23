@@ -9,10 +9,15 @@ public static class WindowProps {
     public static Color bgClear = Color.Black; // this would probably not explode
 }
 
-public class HSV(float hue, float sat, float bri) {
-    public float hue = hue % 360;
-    public float saturation = Math.Max(sat, 1);
-    public float brightness = Math.Max(bri,1);
+public class HSV {
+    public float hue = 0;
+    public float saturation = 0;
+    public float brightness = 0;
+    public HSV(float hue, float sat, float bri) {
+        this.hue = hue % 360;
+        this.saturation = Math.Max(sat, 1);
+        this.brightness = Math.Max(bri,1);
+    }
     public Color toColor() {
         return Color.FromHSV(hue, saturation, brightness);
     }
