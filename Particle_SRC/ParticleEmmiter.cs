@@ -57,8 +57,8 @@ public class ParticleEmmition(uint particleListLenght) {
 
     public void Update(List<Particle> particles, float delta) {
         for(int count = (int)particleListIndex; count < particleListLenght+particleListIndex; count++) {
-            var p = particles[count];
-            if(!p.active) continue;
+            if(!particles[count].active) continue;
+            Particle p = particles[count];
 
             p.remainLifeTime -= delta;
             p.velocity -= gravity * delta;
@@ -71,14 +71,6 @@ public class ParticleEmmition(uint particleListLenght) {
             }
 
             particles[count] = p;
-        }
-    }
-    public void Draw(List<Particle> particles, float delta){
-        for(int count = (int)particleListIndex; count < particleListLenght+particleListIndex; count++) {
-            Particle p = particles[count];
-            if(!p.active) continue;
-            Color lerp = Raylib.ColorLerp(p.colorBegin, p.colorEnd, 1-(float)(p.remainLifeTime/p.LifeTime));
-            Raylib.DrawRectangleRec(p.rec, lerp);
         }
     }
 }

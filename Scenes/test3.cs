@@ -37,7 +37,9 @@ public class test3(SceneManager manager) : IScene {
             manager.RemoveScene();
         }
         Vector2 mousePos = Raylib.GetMousePosition();
-        if(Raylib.IsMouseButtonPressed(MouseButton.Left)){
+        if(Raylib.IsKeyDown(KeyboardKey.LeftControl) && 
+            Raylib.IsMouseButtonDown(MouseButton.Left)
+           || Raylib.IsMouseButtonPressed(MouseButton.Left)) {
             st.emmiters[0].EmmiterPos.Position = mousePos;
             st.Emmit(1000);
         }

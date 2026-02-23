@@ -11,12 +11,12 @@ public class Test2(SceneManager manager) : IScene {
     ParticleEmmition emmitor = new(MAX_PARTICLES);
     float time = 0;
 
-    Color c1 = Raylib.GetColor(0xCC241DFF);
-    Color c2 = Raylib.GetColor(0xb8bb26FF);
+    Color c1 = Color.White;
+    Color c2 = Raylib.GetColor(0xAAFFAAFF);
 
 
     public void LoadContent() {
-        //WindowProps.bgClear = new Color((int)0xFB, (int)0xF1, (int)0xC7, 255);
+        WindowProps.bgClear = new Color((int)0xFB, (int)0xF1, (int)0xC7, 255);
         emmitor.EmmiterPos = new(
             0,
             0,
@@ -26,8 +26,7 @@ public class Test2(SceneManager manager) : IScene {
         emmitor.sizeStart = new(10);
         emmitor.sizeEnd = new();
         emmitor.sizeVariation = new(9);
-        emmitor.colorBegin = Color.Red;
-        emmitor.colorEnd = new();
+        emmitor.colorEnd = Raylib.GetColor(0xAAFFAAFF);
         emmitor.lifeTime = 2f;
         emmitor.lifeTimeVariation = 0.5f;
 

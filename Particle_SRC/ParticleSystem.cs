@@ -8,6 +8,7 @@ public class ParticleSystem
     public uint particleEmmiterIndex = 0;
     public int c = 0;
     public List<ParticleEmmition> emmiters {get; private set;} = new();
+    private readonly Rectangle ViewPort = new(0,0,WindowProps.WIDTH, WindowProps.HEIGHT);
 
     Random rand = new();
 
@@ -34,9 +35,15 @@ public class ParticleSystem
             emiter.Update(particles, delta);
         }
     }
-    public void Draw(float delta) {
-        foreach(var e in emmiters) {
-            e.Draw(particles, delta);
+    public void Draw(float delta) { // apparently this is the bottleneck if you have more than a couple thousand objects. TODO: gpu instancing (if possible in raylib for 2D objects)
+        foreach(Particle p in particles){
+            if(!p.active || !Raylib.CheckCollisionRecs(ViewPort, p.rec)) continue;
+            Color lerp = Raylib.ColorLerp (
+                p.colorBegin,
+                p.colorEnd,
+                1-(float)(p.remainLifeTime/p.LifeTime)
+            );
+            Raylib.DrawRectangleRec(p.rec, lerp);
         }
     }
     public void Emmit(int ammount) {
