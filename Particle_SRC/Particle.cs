@@ -8,5 +8,4 @@ public struct Particle() {
     public Color colorEnd;
     public float LifeTime;
     public float remainLifeTime;
-    public bool active = false;
 }

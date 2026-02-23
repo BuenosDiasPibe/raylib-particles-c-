@@ -35,15 +35,9 @@ public class ParticleSystem
             emiter.Update(particles, delta);
         }
     }
-    public void Draw(float delta) { // apparently this is the bottleneck if you have more than a couple thousand objects. TODO: gpu instancing (if possible in raylib for 2D objects)
-        foreach(Particle p in particles){
-            if(!p.active || !Raylib.CheckCollisionRecs(ViewPort, p.rec)) continue;
-            Color lerp = Raylib.ColorLerp (
-                p.colorBegin,
-                p.colorEnd,
-                1-(float)(p.remainLifeTime/p.LifeTime)
-            );
-            Raylib.DrawRectangleRec(p.rec, lerp);
+    public void Draw(float delta) {
+        foreach(var e in emmiters) {
+            e.Draw(particles, delta);
         }
     }
     public void Emmit(int ammount) {
@@ -52,7 +46,11 @@ public class ParticleSystem
         }
     }
     public int particles_active_count() {
-        return particles.Where(p => p.active).Count();
+        int a = 0;
+        foreach(var e in emmiters){
+            a+=e.getActiveParticles();
+        }
+        return a;
     }
     public void Unload(){
         particles.Clear();
