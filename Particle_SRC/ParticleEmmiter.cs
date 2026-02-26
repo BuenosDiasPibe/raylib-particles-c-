@@ -5,7 +5,7 @@ public class ParticleEmmition(uint particleListLenght) {
     public Rectangle EmmiterPos;
     public Color colorBegin;
     public Color colorEnd;
-    public HSV? hsvVariation;
+    public HSV hsvVariation = new();
     public Vector2 sizeStart, sizeEnd,  sizeVariation;
     public Vector2 velocity, velocityVariation;
     public Vector2 gravity;

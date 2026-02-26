@@ -2,10 +2,10 @@ using Raylib_cs;
 namespace raylib_particles;
 
 public static class WindowProps {
-    public static int WIDTH  = 1000;
-    public static int HEIGHT = 700;
-    public static string NAME = "Particles";
-    public static int FPS     = 60;
+    public static int WIDTH     = 1000;
+    public static int HEIGHT    = 700;
+    public static string NAME   = "Particles";
+    public static int FPS       = 60;
     public static Color bgClear = Color.Black; // this would probably not explode
 }
 
@@ -13,6 +13,7 @@ public class HSV {
     public float hue = 0;
     public float saturation = 0;
     public float brightness = 0;
+    public HSV() {}
     public HSV(float hue, float sat, float bri) {
         this.hue = hue % 360;
         this.saturation = Math.Max(sat, 1);
