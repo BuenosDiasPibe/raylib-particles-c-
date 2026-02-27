@@ -5,7 +5,6 @@ public class ParticleEmmition(uint particleListLenght) {
     public Rectangle EmmiterPos;
     public Color colorBegin;
     public Color colorEnd;
-    public HSV hsvVariation = new();
     public Vector2 sizeStart, sizeEnd,  sizeVariation;
     public Vector2 velocity, velocityVariation;
     public Vector2 gravity;
@@ -26,6 +25,7 @@ public class ParticleEmmition(uint particleListLenght) {
     }
 
     public void Emmit(List<Particle> particles, int ammount) {
+        if(particleActiveID.Count > particleListLenght) return;
         for(int particle = 0; particle < ammount; particle++){
             particleActive = (particleActive+1) % (int)(particleListIndex+particleListLenght);
             if(particleActive == 0) particleActive = (int)particleListIndex; // i hate my puppy life
@@ -37,8 +37,7 @@ public class ParticleEmmition(uint particleListLenght) {
 
             p.LifeTime = lifeTime+(float)(rand.NextDouble()*lifeTimeVariation * rand.GetItems(sign,1)[0]);
             p.remainLifeTime = p.LifeTime;
-            p.colorBegin = colorBegin;
-            p.colorEnd = colorEnd;
+            p.color = colorBegin;
             p.velocity = velocity + new Vector2(
                     rand.NextSingle()*velocityVariation.X * rand.GetItems(sign, 1)[0],
                     rand.NextSingle()*velocityVariation.Y * rand.GetItems(sign, 1)[0]
@@ -59,7 +58,7 @@ public class ParticleEmmition(uint particleListLenght) {
     }
 
     public void Update(List<Particle> particles, float delta) {
-        foreach(int i in particleActiveID.ToList()) {
+        foreach(var i in particleActiveID.ToList()) {
             Particle p = particles[i];
 
             p.remainLifeTime -= delta;
@@ -68,6 +67,11 @@ public class ParticleEmmition(uint particleListLenght) {
             r.Position += p.velocity * delta;
             r.Size = Vector2.Lerp(sizeStart, sizeEnd, 1-(float)(p.remainLifeTime/p.LifeTime));
             p.rec = r;
+            p.color = Raylib.ColorLerp (
+                colorBegin,
+                colorEnd,
+                1-(float)(p.remainLifeTime/p.LifeTime)
+            );
             if(p.remainLifeTime <= 0){
                 particleActiveID.Remove(i);
             }
@@ -78,12 +82,7 @@ public class ParticleEmmition(uint particleListLenght) {
     public void Draw(List<Particle> particles, float delta) {
         foreach(int i in particleActiveID) {
             Particle p = particles[i];
-            Color lerp = Raylib.ColorLerp (
-                p.colorBegin,
-                p.colorEnd,
-                1-(float)(p.remainLifeTime/p.LifeTime)
-            );
-            Raylib.DrawRectangleRec(p.rec, lerp);
+            Raylib.DrawRectangleRec(p.rec, p.color);
         }
     }
     public int getActiveParticles() {return particleActiveID.Count;}

@@ -6,7 +6,7 @@ namespace raylib_particles.Scenes;
 
 public class testScene1(SceneManager sceneManager) : IScene
 {
-    ParticleSystem ps = new(100_000);
+    ParticleSystem ps = new(1_000_000);
     Random r = new();
     SceneManager sceneManager = sceneManager;
 
@@ -21,15 +21,15 @@ public class testScene1(SceneManager sceneManager) : IScene
         if(Raylib.IsKeyDown(KeyboardKey.LeftControl) && Raylib.IsMouseButtonDown(MouseButton.Left)) {
             Vector2 p = Raylib.GetMousePosition();
             ps.CreateEmmitor(test_create_bunch_of_stuff(new Rectangle(p, new Vector2(1)), new(r.NextSingle()*50*r.Next(-10,20), r.NextSingle()*10*r.Next(-10,35))));
-            ps.Emmit(1);
+            ps.Emmit(100);
         }
         if(Raylib.IsMouseButtonPressed(MouseButton.Left)) {
             Vector2 p = Raylib.GetMousePosition();
             ps.CreateEmmitor(test_create_bunch_of_stuff(new Rectangle(p, new Vector2(1)), new(r.NextSingle()*50*r.Next(-10,20), r.NextSingle()*10*r.Next(-10,35))));
-            ps.Emmit(1);
+            ps.Emmit(100);
         }
         if(Raylib.IsKeyDown(KeyboardKey.P)){
-            ps.Emmit(1);
+            ps.Emmit(100);
         }
         ps.Update(delta);
     }
@@ -46,7 +46,7 @@ public class testScene1(SceneManager sceneManager) : IScene
 
     public ParticleEmmition test_create_bunch_of_stuff(Rectangle pos, Vector2 velocity){
         Random r = new();
-        ParticleEmmition emmiter = new(100);
+        ParticleEmmition emmiter = new(10000);
         emmiter.EmmiterPos = pos;
         emmiter.sizeStart = new(5);
         emmiter.sizeEnd = new(1);

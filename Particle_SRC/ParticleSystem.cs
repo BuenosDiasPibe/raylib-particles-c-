@@ -1,4 +1,5 @@
 using Raylib_cs;
+using System.Diagnostics;
 using System.Numerics;
 namespace raylib_particles.Particle_SRC;
 public class ParticleSystem
@@ -9,6 +10,7 @@ public class ParticleSystem
     public int c = 0;
     public List<ParticleEmmition> emmiters {get; private set;} = new();
     private readonly Rectangle ViewPort = new(0,0,WindowProps.WIDTH, WindowProps.HEIGHT);
+    Stopwatch sw = new();
 
     Random rand = new();
 
@@ -31,9 +33,13 @@ public class ParticleSystem
     }
 
     public void Update(float delta) {
+        sw.Start();
         foreach(ParticleEmmition emiter in emmiters) {
             emiter.Update(particles, delta);
         }
+        sw.Stop();
+        Console.WriteLine($"update: {sw.ElapsedMilliseconds}ms");
+        sw.Reset();
     }
     public void Draw(float delta) {
         foreach(var e in emmiters) {
