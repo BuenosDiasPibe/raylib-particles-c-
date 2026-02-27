@@ -25,12 +25,13 @@ public class ParticleEmmition(uint particleListLenght) {
     }
 
     public void Emmit(List<Particle> particles, int ammount) {
-        if(particleActiveID.Count > particleListLenght) return;
         for(int particle = 0; particle < ammount; particle++){
             particleActive = (particleActive+1) % (int)(particleListIndex+particleListLenght);
             if(particleActive == 0) particleActive = (int)particleListIndex; // i hate my puppy life
 
-            if(particleActiveID.Contains(particleActive)) return;
+            if(particleActiveID.Contains(particleActive)){ 
+                continue;
+            }
 
             particleActiveID.Add(particleActive);
             Particle p = particles[particleActive];
@@ -58,21 +59,19 @@ public class ParticleEmmition(uint particleListLenght) {
     }
 
     public void Update(List<Particle> particles, float delta) {
+        float t = 0;
         foreach(var i in particleActiveID.ToList()) {
             Particle p = particles[i];
 
             p.remainLifeTime -= delta;
+            t = 1-(float)(p.remainLifeTime/p.LifeTime);
             p.velocity -= gravity * delta;
             Rectangle r = p.rec;
             r.Position += p.velocity * delta;
-            r.Size = Vector2.Lerp(sizeStart, sizeEnd, 1-(float)(p.remainLifeTime/p.LifeTime));
+            r.Size =LERP(sizeStart, sizeEnd, t);
             p.rec = r;
-            p.color = Raylib.ColorLerp (
-                colorBegin,
-                colorEnd,
-                1-(float)(p.remainLifeTime/p.LifeTime)
-            );
-            if(p.remainLifeTime <= 0){
+            p.color = Raylib.ColorLerp(colorBegin, colorEnd, t);
+                if(p.remainLifeTime <= 0){
                 particleActiveID.Remove(i);
             }
 
@@ -86,4 +85,15 @@ public class ParticleEmmition(uint particleListLenght) {
         }
     }
     public int getActiveParticles() {return particleActiveID.Count;}
+    private static Vector2 LERP(Vector2 v1, Vector2 v2, float t){
+        return (1-t)*v1-v2*t;
+    }
+    private static Color LERP(Color c1, Color c2, float t) {
+        return new(
+                c1.R + (c1.R-c2.R)*t,
+                c1.G + (c1.G-c2.G)*t,
+                c1.B + (c1.B-c2.B)*t,
+                c1.A + (c1.A-c2.A)*t
+        );
+    }
 }
