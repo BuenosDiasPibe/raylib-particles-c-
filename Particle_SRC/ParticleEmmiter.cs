@@ -10,31 +10,27 @@ public class ParticleEmmition(uint particleListLenght) {
     public Vector2 gravity;
     public float lifeTime, lifeTimeVariation;
 
-    public uint particleListIndex = 0;
     public uint particleListLenght = particleListLenght;
-    public int particleActive = 0;
 
-    private List<int> particleActiveID = new();
+    private List<Particle> particlesActive = new();
+    private List<Particle> particlesDeath = new();
+    private int index;
 
     private readonly int[] sign = [-1,1];
 
     Random rand = new();
-    public void setEmmiter(uint index) {
-        particleListIndex = index;
-        particleActive = (int)index;
+    public void setEmmiter(uint ammount) {
+        particlesActive.EnsureCapacity((int)particleListLenght);
+        for(int a = 0; a < particleListLenght; a++){
+            particlesDeath.Add(new());
+        }
     }
 
-    public void Emmit(List<Particle> particles, int ammount) {
+    public void Emmit(int ammount) {
+        if( particlesActive.Count + ammount > particleListLenght) return;
+        int count = particlesDeath.Count-1;
         for(int particle = 0; particle < ammount; particle++){
-            particleActive = (particleActive+1) % (int)(particleListIndex+particleListLenght);
-            if(particleActive == 0) particleActive = (int)particleListIndex; // i hate my puppy life
-
-            if(particleActiveID.Contains(particleActive)){ 
-                continue;
-            }
-
-            particleActiveID.Add(particleActive);
-            Particle p = particles[particleActive];
+            Particle p = particlesDeath[particlesActive.Count];
 
             p.LifeTime = lifeTime+(float)(rand.NextDouble()*lifeTimeVariation * rand.GetItems(sign,1)[0]);
             p.remainLifeTime = p.LifeTime;
@@ -54,14 +50,15 @@ public class ParticleEmmition(uint particleListLenght) {
             );
             p.rec = r;
 
-            particles[particleActive] = p;
+            particlesActive.Add(p);
         }
     }
 
-    public void Update(List<Particle> particles, float delta) {
+    public void Update(float delta) {
         float t = 0;
-        foreach(var i in particleActiveID.ToList()) {
-            Particle p = particles[i];
+        int count = particlesActive.Count;
+        for(int i = 0; i < count; i++) {
+            Particle p = particlesActive[i];
 
             p.remainLifeTime -= delta;
             t = 1-(float)(p.remainLifeTime/p.LifeTime);
@@ -71,20 +68,20 @@ public class ParticleEmmition(uint particleListLenght) {
             r.Size =LERP(sizeStart, sizeEnd, t);
             p.rec = r;
             p.color = Raylib.ColorLerp(colorBegin, colorEnd, t);
-                if(p.remainLifeTime <= 0){
-                particleActiveID.Remove(i);
+            if(p.remainLifeTime <= 0){
+                particlesActive.RemoveAt(i);
+                count--;
+            }else{
+                particlesActive[i] = p;
             }
-
-            particles[i] = p;
         }
     }
-    public void Draw(List<Particle> particles, float delta) {
-        foreach(int i in particleActiveID) {
-            Particle p = particles[i];
+    public void Draw(float delta) {
+        foreach(var p in particlesActive) {
             Raylib.DrawRectangleRec(p.rec, p.color);
         }
     }
-    public int getActiveParticles() {return particleActiveID.Count;}
+    public int getActiveParticles() {return particlesActive.Count;}
     private static Vector2 LERP(Vector2 v1, Vector2 v2, float t){
         return (1-t)*v1-v2*t;
     }

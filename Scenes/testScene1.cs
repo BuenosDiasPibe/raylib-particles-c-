@@ -35,7 +35,7 @@ public class testScene1(SceneManager sceneManager) : IScene
     }
     public void Draw(float delta) {
         ps.Draw(delta);
-        Raylib.DrawText("p: "+ps.particles_active_count().ToString() + " - c: "+ps.particles.Capacity, 0,0,50, Color.White);
+        Raylib.DrawText("p: "+ps.particles_active_count().ToString() + " - c: "+ps.listIndex, 0,0,50, Color.White);
         Raylib.DrawText("fps: "+Raylib.GetFPS().ToString(), 0,50,50, Color.White);
         Raylib.DrawText($"emmiters: {ps.emmiters.Count}", 0, 100, 25, Color.White);
     }
