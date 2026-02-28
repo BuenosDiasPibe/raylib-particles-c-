@@ -37,10 +37,10 @@ public class test3(SceneManager manager) : IScene {
             manager.RemoveScene();
         }
         Vector2 mousePos = Raylib.GetMousePosition();
-        if(Raylib.IsKeyDown(KeyboardKey.LeftControl) && 
-            Raylib.IsMouseButtonDown(MouseButton.Left)
-           || Raylib.IsMouseButtonPressed(MouseButton.Left)) {
-            st.emmiters[0].EmmiterPos.Position = mousePos;
+        if(Raylib.IsKeyDown(KeyboardKey.LeftControl) && Raylib.IsMouseButtonDown(MouseButton.Left) || Raylib.IsMouseButtonPressed(MouseButton.Left)) {
+            ParticleEmmition e = st.emmiters[0];
+            e.EmmiterPos.Position = mousePos;
+            st.emmiters[0] = e;
             st.Emmit(1000);
         }
         st.Update(delta);

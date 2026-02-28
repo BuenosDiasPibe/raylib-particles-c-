@@ -21,20 +21,20 @@ public class testScene1(SceneManager sceneManager) : IScene
         if(Raylib.IsKeyDown(KeyboardKey.LeftControl) && Raylib.IsMouseButtonDown(MouseButton.Left)) {
             Vector2 p = Raylib.GetMousePosition();
             ps.CreateEmmitor(test_create_bunch_of_stuff(new Rectangle(p, new Vector2(1)), new(r.NextSingle()*50*r.Next(-10,20), r.NextSingle()*10*r.Next(-10,35))));
-            ps.Emmit(100);
+            ps.Emmit(1000);
         }
         if(Raylib.IsMouseButtonPressed(MouseButton.Left)) {
             Vector2 p = Raylib.GetMousePosition();
             ps.CreateEmmitor(test_create_bunch_of_stuff(new Rectangle(p, new Vector2(1)), new(r.NextSingle()*50*r.Next(-10,20), r.NextSingle()*10*r.Next(-10,35))));
-            ps.Emmit(100);
+            ps.Emmit(1000);
         }
         if(Raylib.IsKeyDown(KeyboardKey.P)){
-            ps.Emmit(100);
+            ps.Emmit(10000);
         }
         ps.Update(delta);
     }
     public void Draw(float delta) {
-        ps.Draw(delta);
+        //ps.Draw(delta);
         Raylib.DrawText("p: "+ps.particles_active_count().ToString() + " - c: "+ps.listIndex, 0,0,50, Color.White);
         Raylib.DrawText("fps: "+Raylib.GetFPS().ToString(), 0,50,50, Color.White);
         Raylib.DrawText($"emmiters: {ps.emmiters.Count}", 0, 100, 25, Color.White);

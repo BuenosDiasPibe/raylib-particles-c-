@@ -1,7 +1,7 @@
 using Raylib_cs;
 using System.Numerics;
 namespace raylib_particles.Particle_SRC;
-public class ParticleEmmition(uint particleListLenght) {
+public struct ParticleEmmition(uint particleListLenght) {
     public Rectangle EmmiterPos;
     public Color colorBegin;
     public Color colorEnd;
@@ -10,27 +10,32 @@ public class ParticleEmmition(uint particleListLenght) {
     public Vector2 gravity;
     public float lifeTime, lifeTimeVariation;
 
+    public uint particleListIndex = 0;
     public uint particleListLenght = particleListLenght;
-
-    private List<Particle> particlesActive = new();
-    private List<Particle> particlesDeath = new();
-    private int index;
+    public int particleActive = 0;
 
     private readonly int[] sign = [-1,1];
-
     Random rand = new();
-    public void setEmmiter(uint ammount) {
-        particlesActive.EnsureCapacity((int)particleListLenght);
-        for(int a = 0; a < particleListLenght; a++){
-            particlesDeath.Add(new());
-        }
+    public List<int> particleActiveID {get; private set;} = new();
+
+    public void setEmmiter(uint index) {
+        particleListIndex = index;
+        particleActive = (int)index;
     }
 
-    public void Emmit(int ammount) {
-        if( particlesActive.Count + ammount > particleListLenght) return;
-        int count = particlesDeath.Count-1;
+    public void Emmit(List<Particle> particles, int ammount) {
+        int a = 0;
         for(int particle = 0; particle < ammount; particle++){
-            Particle p = particlesDeath[particlesActive.Count];
+            particleActive = (particleActive+1) % (int)(particleListIndex+particleListLenght);
+            if(particleActive == 0) particleActive = (int)particleListIndex; // i hate my puppy life
+
+            if(particleActiveID.Contains(particleActive)){ 
+                a++;
+                continue;
+            }
+
+            particleActiveID.Add(particleActive);
+            Particle p = particles[particleActive];
 
             p.LifeTime = lifeTime+(float)(rand.NextDouble()*lifeTimeVariation * rand.GetItems(sign,1)[0]);
             p.remainLifeTime = p.LifeTime;
@@ -50,15 +55,15 @@ public class ParticleEmmition(uint particleListLenght) {
             );
             p.rec = r;
 
-            particlesActive.Add(p);
+            particles[particleActive] = p;
         }
+        Console.WriteLine($"{a}");
     }
 
-    public void Update(float delta) {
+    public void Update(List<Particle> particles, float delta) {
         float t = 0;
-        int count = particlesActive.Count;
-        for(int i = 0; i < count; i++) {
-            Particle p = particlesActive[i];
+        foreach(var i in particleActiveID.ToList()) {
+            Particle p = particles[i];
 
             p.remainLifeTime -= delta;
             t = 1-(float)(p.remainLifeTime/p.LifeTime);
@@ -68,29 +73,19 @@ public class ParticleEmmition(uint particleListLenght) {
             r.Size =LERP(sizeStart, sizeEnd, t);
             p.rec = r;
             p.color = Raylib.ColorLerp(colorBegin, colorEnd, t);
-            if(p.remainLifeTime <= 0){
-                particlesActive.RemoveAt(i);
-                count--;
-            }else{
-                particlesActive[i] = p;
+                if(p.remainLifeTime <= 0){
+                particleActiveID.Remove(i);
             }
+
+            particles[i] = p;
         }
     }
-    public void Draw(float delta) {
-        foreach(var p in particlesActive) {
+    public void Draw(List<Particle> particles, float delta) {
+        foreach(int i in particleActiveID) {
+            Particle p = particles[i];
             Raylib.DrawRectangleRec(p.rec, p.color);
         }
     }
-    public int getActiveParticles() {return particlesActive.Count;}
-    private static Vector2 LERP(Vector2 v1, Vector2 v2, float t){
-        return (1-t)*v1-v2*t;
-    }
-    private static Color LERP(Color c1, Color c2, float t) {
-        return new(
-                c1.R + (c1.R-c2.R)*t,
-                c1.G + (c1.G-c2.G)*t,
-                c1.B + (c1.B-c2.B)*t,
-                c1.A + (c1.A-c2.A)*t
-        );
-    }
+    public int getActiveParticles() {return particleActiveID.Count;}
+    private static Vector2 LERP(Vector2 v1, Vector2 v2, float t){ return (1-t)*v1-v2*t; }
 }
