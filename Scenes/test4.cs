@@ -26,21 +26,28 @@ public class Test4(SceneManager manager) : IScene
         ps.CreateEmmitor(emmiter);
     }
 
+    int cap = 0;
     public void Update(float delta) {
         if(Raylib.IsKeyPressed(KeyboardKey.Enter)) {
             sceneManager.RemoveScene();
         }
-        emmiter.EmmiterPos.Position = new Vector2(WindowProps.WIDTH, -WindowProps.HEIGHT/2)+ Helper.Rotate(emmiter.EmmiterPos.Position, 1);
-        ps.Emmit(1000);
+        //emmiter.EmmiterPos.Position = new Vector2(WindowProps.WIDTH, -WindowProps.HEIGHT/2)+ Helper.Rotate(emmiter.EmmiterPos.Position, 1);
+        if(Raylib.GetFPS() >= 60)  cap++;
+        else sceneManager.RemoveScene();
+        ps.Emmit(cap);
         ps.Update(delta);
     }
 
     public void Draw(float delta) {
         ps.Draw(delta);
         Raylib.DrawText($"particles: {ps.particles_active_count()}", 0,0,50, Color.White);
+        Raylib.DrawText($"FPS: {Raylib.GetFPS()}", 0,50,50,Color.Beige);
     }
 
     public void UnloadContent() {
+        Console.WriteLine($"cap: {cap}\nparticles: {ps.particles_active_count()}");
+        cap = 0;
+        ps.Unload();
     }
 
 }

@@ -1,0 +1,15 @@
+[
+  {
+    "file": "main.c",
+    "arguments": [
+      "gcc",
+      "main.c",
+      "-Iinclude",
+      "-o",
+      "main",
+      "fsanitize=address"
+    ],
+    "directory": "/home/clumpl/Documentos/raylib_c",
+    "output": "main"
+  }
+]

@@ -33,13 +33,9 @@ public class ParticleSystem
     }
 
     public void Update(float delta) {
-        sw.Start();
         foreach(ParticleEmmition emiter in emmiters) {
             emiter.Update(particles, delta);
         }
-        sw.Stop();
-        Console.WriteLine($"update: {sw.ElapsedMilliseconds}ms");
-        sw.Reset();
     }
     public void Draw(float delta) {
         foreach(var e in emmiters) {

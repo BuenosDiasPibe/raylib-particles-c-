@@ -1,7 +1,7 @@
 using Raylib_cs;
 using System.Numerics;
 namespace raylib_particles.Particle_SRC;
-public struct ParticleEmmition(uint particleListLenght) {
+public class ParticleEmmition(uint particleListLenght) {
     public Rectangle EmmiterPos;
     public Color colorBegin;
     public Color colorEnd;
@@ -24,13 +24,11 @@ public struct ParticleEmmition(uint particleListLenght) {
     }
 
     public void Emmit(List<Particle> particles, int ammount) {
-        int a = 0;
         for(int particle = 0; particle < ammount; particle++){
             particleActive = (particleActive+1) % (int)(particleListIndex+particleListLenght);
             if(particleActive == 0) particleActive = (int)particleListIndex; // i hate my puppy life
 
             if(particleActiveID.Contains(particleActive)){ 
-                a++;
                 continue;
             }
 
@@ -57,7 +55,6 @@ public struct ParticleEmmition(uint particleListLenght) {
 
             particles[particleActive] = p;
         }
-        Console.WriteLine($"{a}");
     }
 
     public void Update(List<Particle> particles, float delta) {
@@ -73,7 +70,8 @@ public struct ParticleEmmition(uint particleListLenght) {
             r.Size =LERP(sizeStart, sizeEnd, t);
             p.rec = r;
             p.color = Raylib.ColorLerp(colorBegin, colorEnd, t);
-                if(p.remainLifeTime <= 0){
+
+            if(p.remainLifeTime <= 0){
                 particleActiveID.Remove(i);
             }
 
