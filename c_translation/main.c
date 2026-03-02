@@ -97,13 +97,13 @@ int main(void) {
         };
         float lifetime = GetRandomValue(-emmitor.lifeTimeVariation/2, emmitor.lifeTimeVariation);
         Particle p = {
+            .position = emmitor.position,
             .remainLifeTime = emmitor.lifeTime + lifetime,
-            .lifeTime = emmitor.lifeTime + emmitor.lifeTimeVariation,
+            .lifeTime = emmitor.lifeTime +lifetime,
             .velocity = vecto2Add(emmitor.velocity, randomVel),
             .color = emmitor.colorBegin
         };
         add_particle(&particles, &p);
-        printf("i\n");
     }
 
     SetTargetFPS(60);
