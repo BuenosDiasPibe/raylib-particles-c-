@@ -149,8 +149,6 @@ void emmit_particle(ParticleList *particles, ParticleEmittor emmitor){
     };
     float lifetime = emmitor.lifeTime + Random()*emmitor.lifeTimeVariation;
     Rectangle sizeVariation = {
-        .x      = (Random()*emmitor.sizeVariation.x) * (GetRandomValue(0, 1) ? -1 : 1),
-        .y      = (Random()*emmitor.sizeVariation.y) * (GetRandomValue(0, 1) ? -1 : 1),
         .width  = (Random()*emmitor.sizeVariation.width) * (GetRandomValue(0, 1) ? -1 : 1),
         .height = (Random()*emmitor.sizeVariation.height) * (GetRandomValue(0, 1) ? -1 : 1)
     };
@@ -167,7 +165,7 @@ void emmit_particle(ParticleList *particles, ParticleEmittor emmitor){
 
 int main(void) {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "particles");
-    int emmit = 40;
+    int emmit = 100;
     ParticleList particles = {0};
     ParticleEmittor emmitor = {
         .position = (Vector2){.x = (float)(SCREEN_WIDTH)/2, .y = (float)(SCREEN_HEIGHT)/2},
@@ -189,7 +187,7 @@ int main(void) {
 
     //SetTargetFPS(60);
     float delta = 0;
-    Texture2D img = LoadTexture("p.jpeg");
+    Texture2D img = LoadTexture("Acover.png");
 
     while (!WindowShouldClose()) {
         delta = GetFrameTime();
