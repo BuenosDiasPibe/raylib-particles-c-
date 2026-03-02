@@ -1,5 +1,4 @@
 #include "raylib.h"
-#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #define SCREEN_WIDTH 800
@@ -21,9 +20,9 @@ typedef struct {
 } Particle;
 
 typedef struct {
+    Particle *particles;
     size_t count;
     size_t capacity;
-    Particle *particles;
 } ParticleList;
 
 typedef struct {
@@ -34,14 +33,14 @@ typedef struct {
     float lifeTime, lifeTimeVariation;
 } ParticleEmittor;
 
-void add_particle(ParticleList *particles, Particle particle) {
+void add_particle(ParticleList *particles, Particle *particle) {
     if(particles->count >= particles->capacity) {
         if(particles->capacity == 0) particles->capacity = 256;
         else particles->capacity *=2;
-        particles->particles = realloc(particles->particles, particles->capacity);
+        particles->particles = realloc(particles->particles, particles->capacity*sizeof(*particles->particles));
     }
 
-    particles->particles[particles->count++] = particle;
+    particles->particles[particles->count++] = *particle;
 }
 void remove_at(ParticleList *particles, size_t index){
     if(particles->count < index) return;
@@ -80,7 +79,7 @@ void draw_particles(ParticleList *particles, float delta) {
 
 int main(void) {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "particles");
-    int initial_capacity = 20;
+    int initial_capacity = 10;
     ParticleList particles = {0};
     ParticleEmittor emmitor = {
         .position = (Vector2){.x = (float)(SCREEN_WIDTH)/2, .y = (float)(SCREEN_HEIGHT)/2},
@@ -88,17 +87,24 @@ int main(void) {
         .colorEnd = ColorFromHSV(GetRandomValue(0, 360), 1, 1),
         .velocity = (Vector2){0,0},
         .velocityVariation = (Vector2){.x = 300, .y = 300},
-        .lifeTime = 10,
+        .lifeTime = 1,
         .lifeTimeVariation = 1,
     };
-    Particle p = {0};
-    p = (Particle){
-        .remainLifeTime = emmitor.lifeTime + emmitor.lifeTimeVariation,
-        .lifeTime = emmitor.lifeTime + emmitor.lifeTimeVariation,
-        .velocity = vecto2Add(emmitor.velocity, emmitor.velocityVariation),
-        .color = emmitor.colorBegin
-    };
-    add_particle(&particles, p);
+    for(int i = 0; i < initial_capacity; i++) {
+        Vector2 randomVel = {
+            .x = GetRandomValue(-emmitor.velocityVariation.x, emmitor.velocityVariation.x),
+            .y = GetRandomValue(-emmitor.velocityVariation.y, emmitor.velocityVariation.y)
+        };
+        float lifetime = GetRandomValue(-emmitor.lifeTimeVariation/2, emmitor.lifeTimeVariation);
+        Particle p = {
+            .remainLifeTime = emmitor.lifeTime + lifetime,
+            .lifeTime = emmitor.lifeTime + emmitor.lifeTimeVariation,
+            .velocity = vecto2Add(emmitor.velocity, randomVel),
+            .color = emmitor.colorBegin
+        };
+        add_particle(&particles, &p);
+        printf("i\n");
+    }
 
     SetTargetFPS(60);
     float delta = 0;
@@ -110,6 +116,7 @@ int main(void) {
             draw_particles(&particles, delta);
         EndDrawing();
     }
+    free((void*)particles.particles);
 
     CloseWindow();
     return 0;
