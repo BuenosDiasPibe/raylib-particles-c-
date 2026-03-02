@@ -20,7 +20,7 @@ typedef struct {
 } Particle;
 
 typedef struct {
-    Particle *particles;
+    Particle *items;
     size_t count;
     size_t capacity;
 } ParticleList;
@@ -37,16 +37,16 @@ void add_particle(ParticleList *particles, Particle *particle) {
     if(particles->count >= particles->capacity) {
         if(particles->capacity == 0) particles->capacity = 256;
         else particles->capacity *=2;
-        particles->particles = realloc(particles->particles, particles->capacity*sizeof(*particles->particles));
+        particles->items = realloc(particles->items, particles->capacity*sizeof(*particles->items));
     }
 
-    particles->particles[particles->count++] = *particle;
+    particles->items[particles->count++] = *particle;
 }
 void remove_at(ParticleList *particles, size_t index){
+    // if some timing problems happend, maybe this is the problem
+    // its really fucking fast tho
     if(particles->count < index) return;
-    for(size_t i = index; i < particles->count; i++) {
-        particles->particles[i] = particles->particles[i+1];
-    }
+    particles->items[index] = particles->items[particles->count];
     particles->count--;
 }
 
@@ -54,7 +54,7 @@ void update_particle(ParticleEmittor emmitor, ParticleList *particles, float del
     float t = 0;
     size_t count = particles->count;
     for(int i = 0; i < count; ++i) {
-        Particle *p = &particles->particles[i];
+        Particle *p = &particles->items[i];
         p->remainLifeTime -= delta;
         if(p->remainLifeTime <= 0) {
             remove_at(particles, i);
@@ -69,7 +69,7 @@ void update_particle(ParticleEmittor emmitor, ParticleList *particles, float del
 
 void draw_particles(ParticleList *particles, float delta) {
     for(size_t i = 0; i < particles->count; ++i) {
-        Particle p = particles->particles[i];
+        Particle p = particles->items[i];
         DrawRectangleRec(
             (Rectangle){.x=p.position.x, .y=p.position.y, .width = 10, .height = 10},
             p.color
@@ -116,7 +116,7 @@ int main(void) {
             draw_particles(&particles, delta);
         EndDrawing();
     }
-    free((void*)particles.particles);
+    free((void*)particles.items);
 
     CloseWindow();
     return 0;
