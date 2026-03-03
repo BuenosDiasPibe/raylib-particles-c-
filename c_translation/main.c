@@ -1,5 +1,6 @@
 #include "raylib.h"
 #include <assert.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -74,10 +75,9 @@ typedef struct {
 void recursionQS(ParticleList *particles, size_t low, size_t high);
 
 typedef struct {
-    uint8_t *items;
+    size_t items[327867];
     size_t count;
-    size_t capacity;
-} uintList;
+} indexList;
 
 typedef struct {
     Vector2 sizeStart, sizeEnd, sizeVariation;
@@ -88,7 +88,6 @@ typedef struct {
     float lifeTime, lifeTimeVariation;
     uint8_t index_start;
     uint8_t ammout_active;
-    uintList ulist;
 } ParticleEmittor;
 
 void particle_alloc(ParticleList *particles){
@@ -98,11 +97,17 @@ void particle_alloc(ParticleList *particles){
         particles->items = realloc(particles->items, particles->capacity*sizeof(Particle));
     }
 }
-void remove_at(ParticleList *particles, size_t index){
-    if(particles->count < index || index <= 0) return;
-    size_t *count = &particles->count;
-    particles->items[index] = particles->items[*count];
-    particles->count--;
+void removeAtList(ParticleList *particles){
+    if(particles->count == 0) return;
+    size_t ammount = 0;
+    for(int i = 0; i < particles->count; i++){
+        particles->items[i] = particles->items[i+ammount]; // i+ammount access points that are not possible
+        if(particles->items[i].remainLifeTime <= 0){
+            ammount++;
+            particles->count--;
+        }
+    }
+    printf("ammount: %zu - p->count: %zu\n", ammount, particles->count);
 }
 
 void update_particle(ParticleEmittor emmitor, ParticleList *particles, float delta) {
@@ -111,11 +116,6 @@ void update_particle(ParticleEmittor emmitor, ParticleList *particles, float del
     for(int i = 0; i < count; ++i) {
         Particle *p = &particles->items[i];
         p->remainLifeTime -= delta;
-        if(p->remainLifeTime <= 0) {
-            remove_at(particles, i);
-            count--;
-            continue;
-        }
         t           = 1-(float)(p->remainLifeTime/p->lifeTime);
         p->rec      = (Rectangle){
             .x      = p->rec.x + p->velocity.x*delta,
@@ -126,6 +126,7 @@ void update_particle(ParticleEmittor emmitor, ParticleList *particles, float del
         p->color    = ColorLerp(emmitor.colorBegin, emmitor.colorEnd, t);
         vector2Sub(&p->velocity, Vector2FloatMul(emmitor.gravity, delta));
     }
+    removeAtList(particles);
 }
 
 void draw_particles_rec(ParticleList *particles, float delta) {
@@ -153,7 +154,7 @@ void draw_particles_img(ParticleList *particles, float delta, Texture2D *image) 
 void emmit_particle(ParticleList *particles, ParticleEmittor emmitor){
     particle_alloc(particles);
     float lifetime = emmitor.lifeTime + Random()*emmitor.lifeTimeVariation;
-    Particle *p = &particles->items[particles->count];
+    Particle *p = &particles->items[particles->count++];
     *p = (Particle){
         .rec = (Rectangle){
             emmitor.position.x,
@@ -169,34 +170,30 @@ void emmit_particle(ParticleList *particles, ParticleEmittor emmitor){
             },
         .color = emmitor.colorBegin,
     };
-    particles->count++;
 }
 
 int main(void) {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "particles");
-    int emmit = 500;
-    ParticleList particles = {0};
+    int emmit = 1000;
+    ParticleList particles = {
+        .capacity = 80000,
+        .items = malloc(sizeof(Particle)*80000)
+    };
     ParticleEmittor emmitor = {
         .position = (Vector2){.x = (float)(SCREEN_WIDTH)/2, .y = (float)(SCREEN_HEIGHT)/2},
-        .sizeStart = (Vector2){.x = 20, .y = 20},
-        .sizeEnd = (Vector2){0},
-        .sizeVariation = (Vector2){.x= 50, .y = 50},
+        .sizeStart = (Vector2){.x = 10, .y = 10},
+        .sizeEnd = (Vector2){50,50},
         .colorBegin = ColorFromHSV(Random()*360, 1, 1),
         .colorEnd = {0},
-        .velocity = (Vector2){0,-30},
+        //.velocity = (Vector2){0,-30},
         .velocityVariation = (Vector2){.x = 30, .y = 30},
-        .lifeTime = 5,
+        .lifeTime = 1,
         .lifeTimeVariation = 10,
         .index_start = 0,
-        .gravity = (Vector2){0,-20}
+        // .gravity = (Vector2){0,-20}
     };
     emmitor.index_start = 0;
     emmitor.ammout_active = emmit;
-    emmitor.ulist = (uintList){
-        .capacity = emmitor.index_start+emmitor.ammout_active,
-        .items = malloc(sizeof(uint8_t)*(emmitor.index_start+emmitor.ammout_active)),
-        .count = 0
-    };
 
     for(int i = 0; i < emmit; i++) {
         emmit_particle(&particles, emmitor);
@@ -239,7 +236,6 @@ int main(void) {
         EndDrawing();
     }
     free((void*)particles.items);
-    free((void*)emmitor.ulist.items);
     UnloadTexture(img);
     printf("\nmaxParticles: %i\nminFPS: %i\nparticleEmmitorSize: %zu\n", maxParticles, minFPS, sizeof(ParticleEmittor));
 
