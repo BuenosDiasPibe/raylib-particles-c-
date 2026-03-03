@@ -1,4 +1,5 @@
 #include "raylib.h"
+#include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -63,7 +64,6 @@ typedef struct {
     Color color;
     float lifeTime;
     float remainLifeTime;
-    size_t index;
 } Particle;
 
 typedef struct {
@@ -100,7 +100,9 @@ void particle_alloc(ParticleList *particles){
 }
 void remove_at(ParticleList *particles, size_t index){
     if(particles->count < index || index <= 0) return;
-    particles->items[index] = particles->items[particles->count--];
+    size_t *count = &particles->count;
+    particles->items[index] = particles->items[*count];
+    particles->count--;
 }
 
 void update_particle(ParticleEmittor emmitor, ParticleList *particles, float delta) {
@@ -125,34 +127,6 @@ void update_particle(ParticleEmittor emmitor, ParticleList *particles, float del
         vector2Sub(&p->velocity, Vector2FloatMul(emmitor.gravity, delta));
     }
 }
-void swap(Particle *p1, Particle *p2) {
-    Particle tmp = *p1;
-    *p1 = *p2;
-    *p2 = tmp;
-}
-size_t partitionQS(ParticleList *particles, size_t low, size_t high){
-    size_t pivot_index = GetRandomValue(low, high);
-    if(pivot_index != high) {
-        swap(&particles->items[pivot_index], &particles->items[high]);
-    }
-    size_t pivot_value = particles->items[high].index;
-    size_t i = low;
-    for(size_t j = low; j < high; j++){
-        if(particles->items[j].index <= pivot_value) {
-            swap(&particles->items[i], &particles->items[j]);
-            i++;
-        }
-    }
-    swap(&particles->items[i], &particles->items[high]);
-    return i;
-}
-void recursionQS(ParticleList *particles, size_t low, size_t high){
-    if(low < high) {
-        size_t pivotIndex = partitionQS(particles, low, high);
-        recursionQS(particles, low, pivotIndex-1);
-        recursionQS(particles, pivotIndex+1, high);
-    }
-}
 
 void draw_particles_rec(ParticleList *particles, float delta) {
     for(size_t i = 0; i <= particles->count; i++) {
@@ -164,7 +138,6 @@ void draw_particles_rec(ParticleList *particles, float delta) {
     }
 }
 void draw_particles_img(ParticleList *particles, float delta, Texture2D *image) {
-    recursionQS(particles, 0, particles->count);
     for(size_t i = 0; i <= particles->count; i++) {
         Particle p = particles->items[i];
         DrawTexturePro(
@@ -195,14 +168,13 @@ void emmit_particle(ParticleList *particles, ParticleEmittor emmitor){
             .y = emmitor.velocity.y + (Random()*emmitor.velocityVariation.y) * (GetRandomValue(0, 1) ? -1 : 1)
             },
         .color = emmitor.colorBegin,
-        .index = particles->count
     };
     particles->count++;
 }
 
 int main(void) {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "particles");
-    int emmit = 60;
+    int emmit = 500;
     ParticleList particles = {0};
     ParticleEmittor emmitor = {
         .position = (Vector2){.x = (float)(SCREEN_WIDTH)/2, .y = (float)(SCREEN_HEIGHT)/2},
@@ -211,11 +183,12 @@ int main(void) {
         .sizeVariation = (Vector2){.x= 50, .y = 50},
         .colorBegin = ColorFromHSV(Random()*360, 1, 1),
         .colorEnd = {0},
-        .velocity = (Vector2){0},
+        .velocity = (Vector2){0,-30},
         .velocityVariation = (Vector2){.x = 30, .y = 30},
         .lifeTime = 5,
         .lifeTimeVariation = 10,
         .index_start = 0,
+        .gravity = (Vector2){0,-20}
     };
     emmitor.index_start = 0;
     emmitor.ammout_active = emmit;
@@ -243,18 +216,19 @@ int main(void) {
     while (!WindowShouldClose()) {
         delta = GetFrameTime();
         fpsColor = WHITE;
-        for(int i = 0; i < emmit; i++) {
-            emmit_particle(&particles, emmitor);
+        if(GetFPS()<60){
+            minFPS = GetFPS();
+            maxParticles = particles.count;
+            fpsColor = RED;
+        }else {
+            for(int i = 0; i < emmit; i++) {
+                emmit_particle(&particles, emmitor);
+            }
         }
         update_particle(emmitor, &particles, delta);
         sprintf(particles_chr, "pActive:%zu, pPool:%zu", particles.count, particles.capacity);
         sprintf(fps_chr, "%i", GetFPS());
         sprintf(emmit_shower, "eps:%i", emmit);
-        if(GetFPS()<60){
-            minFPS = GetFPS();
-            maxParticles = particles.count;
-            fpsColor = RED;
-        }
         if(minFPS == 0) minFPS = 327867;
         BeginDrawing();
             ClearBackground(BLACK);

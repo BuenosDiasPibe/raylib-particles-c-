@@ -9,9 +9,10 @@ public class Test4(SceneManager manager) : IScene
 {
     SceneManager sceneManager = manager;
     const int MAX_PARTICLES = 1_000_000;
-    ParticleSystem ps = new(MAX_PARTICLES);
+    ParticleSystem ps;
     ParticleEmmition emmiter = new(MAX_PARTICLES);
     public void LoadContent() {
+        ps = new(MAX_PARTICLES);
         Random r = new();
         emmiter.EmmiterPos = new(new(WindowProps.WIDTH/2, WindowProps.HEIGHT/2), new(0));
         emmiter.sizeStart = new(5);
@@ -26,14 +27,13 @@ public class Test4(SceneManager manager) : IScene
         ps.CreateEmmitor(emmiter);
     }
 
-    int cap = 0;
+    int cap = 500;
     public void Update(float delta) {
         if(Raylib.IsKeyPressed(KeyboardKey.Enter)) {
             sceneManager.RemoveScene();
         }
         //emmiter.EmmiterPos.Position = new Vector2(WindowProps.WIDTH, -WindowProps.HEIGHT/2)+ Helper.Rotate(emmiter.EmmiterPos.Position, 1);
-        if(Raylib.GetFPS() >= 60)  cap++;
-        else sceneManager.RemoveScene();
+        if(Raylib.GetFPS() < 60) sceneManager.RemoveScene();
         ps.Emmit(cap);
         ps.Update(delta);
     }
@@ -46,7 +46,6 @@ public class Test4(SceneManager manager) : IScene
 
     public void UnloadContent() {
         Console.WriteLine($"cap: {cap}\nparticles: {ps.particles_active_count()}");
-        cap = 0;
         ps.Unload();
     }
 
