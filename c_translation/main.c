@@ -97,17 +97,21 @@ void particle_alloc(ParticleList *particles){
         particles->items = realloc(particles->items, particles->capacity*sizeof(Particle));
     }
 }
+int min(int a, int b){
+    int arr[2] = {a,b};
+    return arr[a<b]; // https://www.techiedelight.com/find-minimum-number-without-using-conditional-statement-ternary-operator/
+}
 void removeAtList(ParticleList *particles){
     if(particles->count == 0) return;
-    size_t ammount = 0;
+    size_t offset = 0;
     for(int i = 0; i < particles->count; i++){
-        particles->items[i] = particles->items[i+ammount]; // i+ammount access points that are not possible
         if(particles->items[i].remainLifeTime <= 0){
-            ammount++;
+            offset++;
             particles->count--;
         }
+        particles->items[i] = particles->items[min(i+offset, particles->count)]; // i+ammount access points that are not possible
     }
-    printf("ammount: %zu - p->count: %zu\n", ammount, particles->count);
+    printf("ammount: %zu - p->count: %zu\n", offset, particles->count);
 }
 
 void update_particle(ParticleEmittor emmitor, ParticleList *particles, float delta) {
@@ -182,7 +186,7 @@ int main(void) {
     ParticleEmittor emmitor = {
         .position = (Vector2){.x = (float)(SCREEN_WIDTH)/2, .y = (float)(SCREEN_HEIGHT)/2},
         .sizeStart = (Vector2){.x = 10, .y = 10},
-        .sizeEnd = (Vector2){50,50},
+        .sizeEnd = (Vector2){0},
         .colorBegin = ColorFromHSV(Random()*360, 1, 1),
         .colorEnd = {0},
         //.velocity = (Vector2){0,-30},
