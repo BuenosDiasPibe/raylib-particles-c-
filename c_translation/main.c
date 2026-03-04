@@ -101,17 +101,16 @@ int min(int a, int b){
     int arr[2] = {a,b};
     return arr[a<b]; // https://www.techiedelight.com/find-minimum-number-without-using-conditional-statement-ternary-operator/
 }
-void removeAtList(ParticleList *particles){
+void removeDeathParticles(ParticleList *particles){
     if(particles->count == 0) return;
-    size_t offset = 0;
-    for(int i = 0; i < particles->count; i++){
-        if(particles->items[i].remainLifeTime <= 0){
-            offset++;
-            particles->count--;
+    size_t point0 = 0;
+    for(size_t point1 = 0; point1 < particles->count; point1++){
+        particles->items[point0] = particles->items[point1];
+        if(!(particles->items[point1].remainLifeTime <= 0)){
+            point0++;
         }
-        particles->items[i] = particles->items[min(i+offset, particles->count)]; // i+ammount access points that are not possible
     }
-    printf("ammount: %zu - p->count: %zu\n", offset, particles->count);
+    particles->count = point0; // thank you Cyberpunk2007
 }
 
 void update_particle(ParticleEmittor emmitor, ParticleList *particles, float delta) {
@@ -130,7 +129,7 @@ void update_particle(ParticleEmittor emmitor, ParticleList *particles, float del
         p->color    = ColorLerp(emmitor.colorBegin, emmitor.colorEnd, t);
         vector2Sub(&p->velocity, Vector2FloatMul(emmitor.gravity, delta));
     }
-    removeAtList(particles);
+    removeDeathParticles(particles);
 }
 
 void draw_particles_rec(ParticleList *particles, float delta) {
@@ -179,10 +178,7 @@ void emmit_particle(ParticleList *particles, ParticleEmittor emmitor){
 int main(void) {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "particles");
     int emmit = 1000;
-    ParticleList particles = {
-        .capacity = 80000,
-        .items = malloc(sizeof(Particle)*80000)
-    };
+    ParticleList particles = {0};
     ParticleEmittor emmitor = {
         .position = (Vector2){.x = (float)(SCREEN_WIDTH)/2, .y = (float)(SCREEN_HEIGHT)/2},
         .sizeStart = (Vector2){.x = 10, .y = 10},
