@@ -152,11 +152,8 @@ void updateParticle(ParticleEmittor emmitor, ParticleList *particles, float delt
 
 void drawParticlesRec(ParticleList *particles, float delta) {
     for(size_t i = 0; i < particles->count; i++) {
-        Particle *p = &particles->items[i];
-        DrawRectangleRec(
-            p->rec,
-            p->color
-        );
+        Particle p = particles->items[i];
+        DrawRectangleRec(p.rec, p.color);
     }
 }
 void drawParticlesImg(ParticleList *particles, float delta, Texture2D *image) {
@@ -189,24 +186,26 @@ void checkFileDropped(Texture2D *img){
 
 int main(void) {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "particles");
-    int emmit = 30;
+    int emmit = 100;
     ParticleList particles = {0};
     particleAlloc(&particles);
+    Color c =  ColorFromHSV(Random()*360, 1, 1);
+    c.a = 0;
     ParticleEmittor emmitor = {
-        .position = (Vector2){.x = (float)(SCREEN_WIDTH)/2-20, .y = (float)(SCREEN_HEIGHT)/2-20},
-        .sizeStart = (Vector2){.x = 40, .y = 40},
+        .position = (Vector2){.x = (float)(SCREEN_WIDTH)/2, .y = (float)(SCREEN_HEIGHT)/2},
+        .sizeStart = (Vector2){.x = 10, .y = 10},
         .sizeEnd = (Vector2){0},
-        .colorBegin = WHITE,//ColorFromHSV(Random()*360, 1, 1),
-        .colorEnd = {0},
-        .velocity = (Vector2){0,-30},
-        .velocityVariation = (Vector2){.x = 30, .y = 30},
-        .lifeTime = 1,
-        .lifeTimeVariation = 3,
-        .gravity = (Vector2){0,-40}
+        .colorBegin = ColorFromHSV(Random()*360, 1, 1),
+        .colorEnd = c,
+        //.velocity = (Vector2){0,-30},
+        .velocityVariation = (Vector2){.x = 10, .y = 10},
+        .lifeTime = 0.5f,
+        .lifeTimeVariation = 15,
+        //.gravity = (Vector2){0,-40}
     };
-    // char fps_chr[5] = {0};
-    // char particles_chr[100] = {0};
-    // char emmit_shower[50] = {0};
+    char fps_chr[5] = {0};
+    char particles_chr[100] = {0};
+    char emmit_shower[50] = {0};
 
     SetTargetFPS(60);
     float delta = 0;
@@ -214,21 +213,22 @@ int main(void) {
 
     while (!WindowShouldClose()) {
         delta = GetFrameTime();
-        //emmitor.position = GetMousePosition();
+        emmitor.position = GetMousePosition();
+        emmitor.velocity = GetMouseDelta();
         for(int i = 0; i < emmit; i++) {
             emmitParticle(&particles, emmitor);
         }
         updateParticle(emmitor, &particles, delta);
 
-        // sprintf(particles_chr, "pActive:%zu, pPool:%zu", particles.count, particles.capacity);
-        // sprintf(fps_chr, "%i", GetFPS());
-        // sprintf(emmit_shower, "eps:%i", emmit);
+        sprintf(particles_chr, "pActive:%zu, pPool:%zu", particles.count, particles.capacity);
+        sprintf(fps_chr, "%i", GetFPS());
+        sprintf(emmit_shower, "eps:%i", emmit);
         BeginDrawing();
             ClearBackground(BLACK);
-            drawParticlesImg(&particles, delta, &img);
-            // DrawText(fps_chr, 0, 0, 50, WHITE);
-            // DrawText(particles_chr, 0, 50, 50, WHITE);
-            // DrawText(emmit_shower, 0, 100, 50, WHITE);
+            drawParticlesRec(&particles, delta);
+            DrawText(fps_chr, 0, 0, 50, WHITE);
+            DrawText(particles_chr, 0, 50, 50, WHITE);
+            DrawText(emmit_shower, 0, 100, 50, WHITE);
         EndDrawing();
     }
     free((void*)particles.items);
