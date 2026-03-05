@@ -51,6 +51,16 @@ Rectangle RecVecSizeLerp(Rectangle r1, Vector2 v2, float t) {
         .height = r1.height*(1-t) + v2.y*t
     };
 }
+Color colorLerp(Color color1, Color color2, float t) {
+    if(t > 1.f) t = 1;
+    else if(t < 0.f) t = 0;
+    return (Color){
+        (unsigned char)((1.f-t)*color1.r + color2.r*t),
+        (unsigned char)((1.f-t)*color1.g + color2.g*t),
+        (unsigned char)((1.f-t)*color1.b + color2.b*t),
+        (unsigned char)((1.f-t)*color1.a + color2.a*t),
+    };
+}
 float ffLerp(float f1, float f2, float t) {
     return (1-t)*f1 + f2*t;
 }
@@ -74,17 +84,15 @@ typedef struct {
 } ParticleList;
 
 typedef struct {
-    Vector2 sizeStart, sizeEnd, sizeVariation;
+    Vector2 sizeStart, sizeEnd;
     Vector2 position;
     Vector2 velocity, velocityVariation;
     Vector2 gravity;
     Color colorBegin, colorEnd;
-    uint8_t index_start;
-    uint8_t ammout_active;
     float lifeTime, lifeTimeVariation;
 } ParticleEmittor;
 
-void particle_alloc(ParticleList *particles){
+void particleAlloc(ParticleList *particles){
     if(particles->count >= particles->capacity) {
         if(particles->capacity == 0) particles->capacity = 256;
         else particles->capacity *= 2;
@@ -92,22 +100,22 @@ void particle_alloc(ParticleList *particles){
     }
 }
 
-void emmit_particle(ParticleList *particles, ParticleEmittor emmitor){
-    particle_alloc(particles);
+void emmitParticle(ParticleList *particles, ParticleEmittor emmitor){
+    particleAlloc(particles);
     float lifetime = emmitor.lifeTime + Random()*emmitor.lifeTimeVariation;
     Particle *p = &particles->items[particles->count++];
     *p = (Particle){
-        .rec = (Rectangle){
-            emmitor.position.x,
-            emmitor.position.y,
-            },
-        .remainLifeTime =  lifetime,
-        .lifeTime = lifetime,
-        .velocity = (Vector2){
-            .x = emmitor.velocity.x + (Random()*emmitor.velocityVariation.x) * (GetRandomValue(0, 1) ? -1 : 1),
-            .y = emmitor.velocity.y + (Random()*emmitor.velocityVariation.y) * (GetRandomValue(0, 1) ? -1 : 1)
-            },
-        .color = emmitor.colorBegin,
+        .rec            = (Rectangle) {
+            .x          = emmitor.position.x,
+            .y          = emmitor.position.y,
+        },
+        .remainLifeTime = lifetime,
+        .lifeTime       = lifetime,
+        .velocity       = (Vector2) {
+            .x          = emmitor.velocity.x + (Random()*emmitor.velocityVariation.x) * (GetRandomValue(0, 1) ? -1 : 1),
+            .y          = emmitor.velocity.y + (Random()*emmitor.velocityVariation.y) * (GetRandomValue(0, 1) ? -1 : 1)
+        },
+        .color          = emmitor.colorBegin,
     };
 }
 
@@ -123,7 +131,7 @@ void removeDeathParticles(ParticleList *particles){
     particles->count = point0; // thank you Cyberpunk2007
 }
 
-void update_particle(ParticleEmittor emmitor, ParticleList *particles, float delta) {
+void updateParticle(ParticleEmittor emmitor, ParticleList *particles, float delta) {
     float t = 0;
     size_t count = particles->count;
     for(int i = 0; i < count; ++i) {
@@ -137,12 +145,12 @@ void update_particle(ParticleEmittor emmitor, ParticleList *particles, float del
             .width         = ffLerp(emmitor.sizeStart.x, emmitor.sizeEnd.x, t),
             .height        = ffLerp(emmitor.sizeStart.y, emmitor.sizeEnd.y, t)
         };
-        p->color           = ColorLerp(emmitor.colorBegin, emmitor.colorEnd, t);
+        p->color           = colorLerp(emmitor.colorBegin, emmitor.colorEnd, t);
     }
     removeDeathParticles(particles);
 }
 
-void draw_particles_rec(ParticleList *particles, float delta) {
+void drawParticlesRec(ParticleList *particles, float delta) {
     for(size_t i = 0; i < particles->count; i++) {
         Particle *p = &particles->items[i];
         DrawRectangleRec(
@@ -151,7 +159,7 @@ void draw_particles_rec(ParticleList *particles, float delta) {
         );
     }
 }
-void draw_particles_img(ParticleList *particles, float delta, Texture2D *image) {
+void drawParticlesImg(ParticleList *particles, float delta, Texture2D *image) {
     for(size_t i = 0; i < particles->count; i++) {
         Particle *p = &particles->items[i];
         DrawTexturePro(
@@ -165,13 +173,27 @@ void draw_particles_img(ParticleList *particles, float delta, Texture2D *image) 
     }
 }
 
+void checkFileDropped(Texture2D *img){
+    if(IsFileDropped())
+    {
+        FilePathList path = LoadDroppedFiles();
+        if(IsFileExtension(path.paths[0],".png")
+        || IsFileExtension(path.paths[0],".jpg")
+        || IsFileExtension(path.paths[0],".jpeg"))
+        {
+            *img = LoadTexture(path.paths[0]);
+        }
+        UnloadDroppedFiles(path);
+    }
+}
+
 int main(void) {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "particles");
-    int emmit = 10;
+    int emmit = 30;
     ParticleList particles = {0};
-    particle_alloc(&particles);
+    particleAlloc(&particles);
     ParticleEmittor emmitor = {
-        .position = (Vector2){.x = (float)(SCREEN_WIDTH)/2-200, .y = (float)(SCREEN_HEIGHT)/2-200},
+        .position = (Vector2){.x = (float)(SCREEN_WIDTH)/2-20, .y = (float)(SCREEN_HEIGHT)/2-20},
         .sizeStart = (Vector2){.x = 40, .y = 40},
         .sizeEnd = (Vector2){0},
         .colorBegin = WHITE,//ColorFromHSV(Random()*360, 1, 1),
@@ -179,39 +201,34 @@ int main(void) {
         .velocity = (Vector2){0,-30},
         .velocityVariation = (Vector2){.x = 30, .y = 30},
         .lifeTime = 1,
-        .lifeTimeVariation = 5,
-        .gravity = (Vector2){0,-20}
+        .lifeTimeVariation = 3,
+        .gravity = (Vector2){0,-40}
     };
-    emmitor.ammout_active = emmit;
-
-    for(int i = 0; i < emmit; i++) {
-        emmit_particle(&particles, emmitor);
-    }
-    char fps_chr[5] = {0};
-    char particles_chr[100] = {0};
-    char emmit_shower[50] = {0};
+    // char fps_chr[5] = {0};
+    // char particles_chr[100] = {0};
+    // char emmit_shower[50] = {0};
 
     SetTargetFPS(60);
     float delta = 0;
     Texture2D img = LoadTexture("Acover.png");
 
-
     while (!WindowShouldClose()) {
         delta = GetFrameTime();
-        emmitor.position = GetMousePosition();
+        //emmitor.position = GetMousePosition();
         for(int i = 0; i < emmit; i++) {
-            emmit_particle(&particles, emmitor);
+            emmitParticle(&particles, emmitor);
         }
-        update_particle(emmitor, &particles, delta);
-        sprintf(particles_chr, "pActive:%zu, pPool:%zu", particles.count, particles.capacity);
-        sprintf(fps_chr, "%i", GetFPS());
-        sprintf(emmit_shower, "eps:%i", emmit);
+        updateParticle(emmitor, &particles, delta);
+
+        // sprintf(particles_chr, "pActive:%zu, pPool:%zu", particles.count, particles.capacity);
+        // sprintf(fps_chr, "%i", GetFPS());
+        // sprintf(emmit_shower, "eps:%i", emmit);
         BeginDrawing();
             ClearBackground(BLACK);
-            draw_particles_rec(&particles, delta);
-            DrawText(fps_chr, 0, 0, 50, WHITE);
-            DrawText(particles_chr, 0, 50, 50, WHITE);
-            DrawText(emmit_shower, 0, 100, 50, WHITE);
+            drawParticlesImg(&particles, delta, &img);
+            // DrawText(fps_chr, 0, 0, 50, WHITE);
+            // DrawText(particles_chr, 0, 50, 50, WHITE);
+            // DrawText(emmit_shower, 0, 100, 50, WHITE);
         EndDrawing();
     }
     free((void*)particles.items);
