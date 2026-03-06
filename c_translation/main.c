@@ -1,5 +1,6 @@
 #include "raylib.h"
 #include <assert.h>
+#include <math.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -8,6 +9,7 @@
 #include <string.h>
 #define SCREEN_WIDTH 1000
 #define SCREEN_HEIGHT 600
+#define MAX_EMMITOR_PARTICLES 327867
 
 Vector2 vector2Add(Vector2 v1, Vector2 v2) {
     return (Vector2) {
@@ -71,8 +73,8 @@ float Random(){ // between 0 and 1
 
 typedef struct {
     Rectangle rec;
-    Vector2 velocity;
-    Color color;
+    Vector2 velocity, sizeStart;
+    Color color, colorBegin, colorEnd;
     float lifeTime;
     float remainLifeTime;
 } Particle;
@@ -84,7 +86,7 @@ typedef struct {
 } ParticleList;
 
 typedef struct {
-    Vector2 sizeStart, sizeEnd;
+    Vector2 sizeStart, sizeEnd, sizeVariation;
     Vector2 position;
     Vector2 velocity, velocityVariation;
     Vector2 gravity;
@@ -109,6 +111,10 @@ void emmitParticle(ParticleList *particles, ParticleEmittor emmitor){
             .x          = emmitor.position.x,
             .y          = emmitor.position.y,
         },
+        .sizeStart =(Vector2) {
+            .x      = emmitor.sizeStart.x + Random()*emmitor.sizeVariation.x * (GetRandomValue(0, 1) ? -1 : 1),
+            .y     = emmitor.sizeStart.y + Random()*emmitor.sizeVariation.y * (GetRandomValue(0, 1) ? -1 : 1)
+        },
         .remainLifeTime = lifetime,
         .lifeTime       = lifetime,
         .velocity       = (Vector2) {
@@ -116,13 +122,15 @@ void emmitParticle(ParticleList *particles, ParticleEmittor emmitor){
             .y          = emmitor.velocity.y + (Random()*emmitor.velocityVariation.y) * (GetRandomValue(0, 1) ? -1 : 1)
         },
         .color          = emmitor.colorBegin,
+        .colorBegin     = emmitor.colorBegin,
+        .colorEnd       = emmitor.colorEnd
     };
 }
 
 void removeDeathParticles(ParticleList *particles){
     if(particles->count == 0) return;
     size_t point0 = 0;
-    for(size_t point1 = 0; point1 < particles->count; point1++){
+    for(size_t point1 = 0; point1 < particles->count; ++point1){
         particles->items[point0] = particles->items[point1];
         if(!(particles->items[point1].remainLifeTime <= 0)){
             point0++;
@@ -142,22 +150,22 @@ void updateParticle(ParticleEmittor emmitor, ParticleList *particles, float delt
         p->rec             = (Rectangle){
             .x             = p->rec.x + p->velocity.x*delta,
             .y             = p->rec.y + p->velocity.y*delta,
-            .width         = ffLerp(emmitor.sizeStart.x, emmitor.sizeEnd.x, t),
-            .height        = ffLerp(emmitor.sizeStart.y, emmitor.sizeEnd.y, t)
+            .width         = ffLerp(p->sizeStart.x, emmitor.sizeEnd.x, t),
+            .height        = ffLerp(p->sizeStart.y, emmitor.sizeEnd.y, t)
         };
-        p->color           = colorLerp(emmitor.colorBegin, emmitor.colorEnd, t);
+        p->color           = colorLerp(p->colorBegin, p->colorEnd, t);
     }
     removeDeathParticles(particles);
 }
 
 void drawParticlesRec(ParticleList *particles, float delta) {
-    for(size_t i = 0; i < particles->count; i++) {
+    for(size_t i = 0; i < particles->count; ++i) {
         Particle p = particles->items[i];
         DrawRectangleRec(p.rec, p.color);
     }
 }
 void drawParticlesImg(ParticleList *particles, float delta, Texture2D *image) {
-    for(size_t i = 0; i < particles->count; i++) {
+    for(size_t i = 0; i < particles->count; ++i) {
         Particle *p = &particles->items[i];
         DrawTexturePro(
             *image,
@@ -186,16 +194,17 @@ void checkFileDropped(Texture2D *img){
 
 int main(void) {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "particles");
-    int emmit = 100;
+    int emmit = 10;
     ParticleList particles = {0};
     particleAlloc(&particles);
     Color c =  ColorFromHSV(Random()*360, 1, 1);
     c.a = 0;
     ParticleEmittor emmitor = {
         .position = (Vector2){.x = (float)(SCREEN_WIDTH)/2, .y = (float)(SCREEN_HEIGHT)/2},
-        .sizeStart = (Vector2){.x = 10, .y = 10},
+        .sizeStart = (Vector2){0},
+        .sizeVariation = (Vector2){.x = 50, .y = 50},
         .sizeEnd = (Vector2){0},
-        .colorBegin = ColorFromHSV(Random()*360, 1, 1),
+        .colorBegin = {0},
         .colorEnd = c,
         //.velocity = (Vector2){0,-30},
         .velocityVariation = (Vector2){.x = 10, .y = 10},
@@ -210,13 +219,19 @@ int main(void) {
     SetTargetFPS(60);
     float delta = 0;
     Texture2D img = LoadTexture("Acover.png");
+    float hue = 0;
 
     while (!WindowShouldClose()) {
-        delta = GetFrameTime();
+        delta = GetFrameTime()*2;
+        hue = (float)(fmod(hue+delta*10, 360.f));
+        emmitor.colorBegin = ColorFromHSV(hue, 1, 1);
         emmitor.position = GetMousePosition();
         emmitor.velocity = GetMouseDelta();
-        for(int i = 0; i < emmit; i++) {
-            emmitParticle(&particles, emmitor);
+        if(IsMouseButtonDown(MOUSE_BUTTON_LEFT)){
+            for(int i = 0; i < emmit; ++i) {
+
+                emmitParticle(&particles, emmitor);
+            }
         }
         updateParticle(emmitor, &particles, delta);
 
