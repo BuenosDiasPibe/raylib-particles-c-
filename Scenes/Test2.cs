@@ -16,7 +16,7 @@ public class Test2(SceneManager manager) : IScene {
 
 
     public void LoadContent() {
-        WindowProps.bgClear = new Color((int)0xFB, (int)0xF1, (int)0xC7, 255);
+        WindowProps.bgClear = Raylib.GetColor(0x282828FF);
         emmitor.EmmiterPos = new(
             0,
             0,
@@ -26,7 +26,7 @@ public class Test2(SceneManager manager) : IScene {
         emmitor.sizeStart = new(10);
         emmitor.sizeEnd = new();
         emmitor.sizeVariation = new(9);
-        emmitor.colorEnd = Raylib.GetColor(0xAAFFAAFF);
+        emmitor.colorEnd = Raylib.GetColor(0x282828FF);
         emmitor.lifeTime = 2f;
         emmitor.lifeTimeVariation = 0.5f;
 

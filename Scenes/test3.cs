@@ -11,7 +11,7 @@ public class test3(SceneManager manager) : IScene {
     SceneManager manager = manager;
 
     public void LoadContent() {
-        WindowProps.bgClear = Raylib.GetColor(0x3C3836FF);
+        WindowProps.bgClear = Raylib.GetColor(0x282828FF);
 
         ParticleEmmition e1 = new(max_particles);
         e1.EmmiterPos = new(WindowProps.WIDTH/2,WindowProps.HEIGHT/2, 10,10);
