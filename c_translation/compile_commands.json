@@ -3,13 +3,30 @@
     "file": "main.c",
     "arguments": [
       "gcc",
+      "-O3",
       "main.c",
+      "-g",
       "-Iinclude",
       "-o",
       "main",
-      "fsanitize=address"
+      "-fsanitize=address"
     ],
-    "directory": "/home/clumpl/Documentos/raylib_c",
+    "directory": "/home/clumpl/Documentos/Raylib_Folders/raylib_particles/c_translation",
+    "output": "main"
+  },
+  {
+    "file": "math.c",
+    "arguments": [
+      "gcc",
+      "-O3",
+      "math.c",
+      "-g",
+      "-Iinclude",
+      "-o",
+      "main",
+      "-fsanitize=address"
+    ],
+    "directory": "/home/clumpl/Documentos/Raylib_Folders/raylib_particles/c_translation",
     "output": "main"
   }
 ]
