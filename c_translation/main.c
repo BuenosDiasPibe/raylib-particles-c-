@@ -74,13 +74,15 @@ void emmitParticle(ParticleList *particles, ParticleEmittor *emmitor){
 
 void removeDeathParticles(ParticleList *particles, ParticleEmittor *emmitor){
     size_t point0 = emmitor->index;
-    for(size_t point1 = emmitor->index; point1 < emmitor->active; ++point1){
+    size_t final_index = 0;
+    for(size_t point1 = emmitor->index; point1 < emmitor->active + emmitor->index; ++point1){
         particles->items[point0] = particles->items[point1];
         if(particles->items[point1].remainLifeTime > 0){
             point0++;
+            final_index++;
         }
     }
-    emmitor->active = point0 - emmitor->index; // thank you Cyberpunk2007
+    emmitor->active = final_index; // thank you Cyberpunk2007
 }
 
 void updateParticle(ParticleEmittor *emmitor, ParticleList *particles, float delta) {
@@ -101,8 +103,10 @@ void updateParticle(ParticleEmittor *emmitor, ParticleList *particles, float del
     removeDeathParticles(particles, emmitor);
 }
 
-void drawParticlesRec(ParticleList *particles,ParticleEmittor *emmitor, float delta) {
-    for(size_t i = emmitor->index; i < emmitor->active+emmitor->index; ++i) {
+void drawParticlesRec(ParticleList *particles,ParticleEmittor emmitor, float delta) {
+    if(emmitor.active == 0) return;
+    printf("e->index: %zu ; e->active: %zu\n", emmitor.index, emmitor.active);
+    for(size_t i = emmitor.index; i < emmitor.active+emmitor.index; ++i) {
         Particle p = particles->items[i];
         DrawRectangleRec(p.rec, p.color);
     }
@@ -144,7 +148,6 @@ int main(void) {
     c.a = 0;
     ParticleEmittor emmitors[2] = {0};
     emmitors[0] = (ParticleEmittor){
-        .position = (Vector2){.x = (float)(SCREEN_WIDTH)/2, .y = (float)(SCREEN_HEIGHT)/2},
         .sizeStart = (Vector2){0},
         .sizeVariation = (Vector2){.x = 50, .y = 50},
         .sizeEnd = (Vector2){0},
@@ -161,18 +164,18 @@ int main(void) {
     };
     emmitors[1] = (ParticleEmittor){
         .position = (Vector2){.x = (float)(SCREEN_WIDTH)/2, .y = (float)(SCREEN_HEIGHT)/2},
-        .sizeStart = (Vector2){0},
+        .sizeStart = (Vector2){.x = 50, .y = 50},
         .sizeVariation = (Vector2){.x = 50, .y = 50},
         .sizeEnd = (Vector2){0},
-        .colorBegin = {0},
+        .colorBegin = (Color){200,200,200,255},
         .colorEnd = c,
         .velocity = (Vector2){0,-30},
         .velocityVariation = (Vector2){.x = 10, .y = 10},
-        .lifeTime = 0.5f,
-        .lifeTimeVariation = 15,
+        .lifeTime = 5,
+        .lifeTimeVariation = 1,
         .gravity = (Vector2){0,-40},
         .index = 3000,
-        .ammount = 3000,
+        .ammount = 30000,
         .active = 0
     };
     for(int i = 0; i < 2; ++i) {
@@ -195,6 +198,7 @@ int main(void) {
         emmitors[0].velocity = GetMouseDelta();
         if(IsMouseButtonDown(MOUSE_BUTTON_LEFT)){
             for(int j = 0; j < 2; ++j){
+                printf("j:%i\n", j);
                 for(int i = 0; i < emmit; ++i) {
                         emmitParticle(&particles, &emmitors[j]);
                 }
@@ -210,7 +214,7 @@ int main(void) {
         BeginDrawing();
             ClearBackground(BLACK);
             for(int i = 0; i < 2; i++){
-                drawParticlesRec(&particles,&emmitors[i], delta);
+                drawParticlesRec(&particles,emmitors[i], delta);
             }
             DrawText(fps_chr, 0, 0, 50, WHITE);
             DrawText(particles_chr, 0, 50, 50, WHITE);
