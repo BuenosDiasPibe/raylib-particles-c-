@@ -66,7 +66,6 @@ void emmitParticle(ParticleList *particles, ParticleEmittor *emmitor){
         return;
     }
     emmitor->active+=1;
-    printf("eActive: %zu\n", emmitor->active);
     size_t in = emmitor->index+emmitor->active;
 
     float lifetime = emmitor->lifeTime + Random()*emmitor->lifeTimeVariation;
@@ -124,7 +123,6 @@ void updateParticle(ParticleEmittor *emmitor, ParticleList *particles, float del
 
 void drawParticlesRec(ParticleList *particles, ParticleEmittor emmitor, float delta) {
     if(emmitor.active == 0) return;
-    printf("e->index: %zu ; e->active: %zu\n", emmitor.index, emmitor.active);
     for(size_t i = emmitor.index; i < emmitor.active+emmitor.index; ++i) {
         Particle p = particles->items[i];
         DrawRectangleRec(p.rec, p.color);
@@ -160,13 +158,14 @@ void checkFileDropped(Texture2D *img){
 
 int main(void) {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "particles");
-    int emmit = 3;
-    ParticleList particles = {.capacity = 3030};
+    int emmit = 300;
+    ParticleList particles = {.capacity = 30300};
     particleAlloc(&particles);
     Color c =  ColorFromHSV(Random()*360, 1, 1);
     c.a = 0;
-    float hue = 200;
-    ParticleEmittor emmitors[2] = {0};
+    float hue = 10;
+    size_t ammount = 5;
+    ParticleEmittor emmitors[5] = {0};
     emmitors[0] = (ParticleEmittor){
         .sizeStart = (Vector2){0},
         .sizeVariation = (Vector2){.x = 50, .y = 50},
@@ -181,6 +180,7 @@ int main(void) {
         .ammount = 3000,
         .active = 0
     };
+    hue+=10;
     emmitors[1] = (ParticleEmittor){
         .position = (Vector2){.x = (float)(SCREEN_WIDTH)/2, .y = (float)(SCREEN_HEIGHT)/2},
         .sizeStart = (Vector2){.x = 50, .y = 50},
@@ -196,7 +196,53 @@ int main(void) {
         .ammount = 300,
         .active = 0
     };
-    for(int i = 0; i < 2; ++i) { // i need to do this for every emmitor every time i create one
+    hue+=20;
+    emmitors[2] = (ParticleEmittor){
+        .position = (Vector2){100,30},
+        .sizeStart = (Vector2){.x = 50, .y = 50},
+        .sizeEnd = (Vector2){0},
+        .colorBegin = ColorFromHSV(hue, 1, 1),
+        .colorEnd = c,
+        .velocity = (Vector2){0,330},
+        .velocityVariation = (Vector2){.x = 10, .y = 10},
+        .lifeTime = 3,
+        .lifeTimeVariation = 1,
+        .gravity = (Vector2){0,40},
+        .ammount = 3000,
+        .active = 0
+    };
+    hue+=20;
+    emmitors[3] = (ParticleEmittor){
+        .position = (Vector2){SCREEN_WIDTH-30,SCREEN_HEIGHT-30},
+        .sizeStart = (Vector2){50, 50},
+        .sizeEnd = (Vector2){10,10},
+        .colorBegin = ColorFromHSV(hue, 1, 1),
+        .colorEnd = c,
+        .velocity = (Vector2){-20,-330},
+        .velocityVariation = (Vector2){.x = 10, .y = 10},
+        .lifeTime = 3,
+        .lifeTimeVariation = 1,
+        .gravity = (Vector2){0,-40},
+        .ammount = 3000,
+        .active = 0
+    };
+    hue+=30;
+    emmitors[4] = (ParticleEmittor){
+        .position = (Vector2){500,300},
+        .sizeStart = (Vector2){0},
+        .sizeVariation = (Vector2){.x = 50, .y = 50},
+        .sizeEnd = (Vector2){0},
+        .colorBegin =  ColorFromHSV(hue, 1, 1),
+        .colorEnd = c,
+        .velocity = (Vector2){0,330},
+        .velocityVariation = (Vector2){.x = 10, .y = 10},
+        .lifeTime = 3,
+        .lifeTimeVariation = 1,
+        .gravity = (Vector2){0,40},
+        .ammount = 3000,
+        .active = 0
+    };
+    for(int i = 0; i < ammount; ++i) { // i need to do this for every emmitor every time i create one
         printf("result: %i\n", askForEmmitorAmmount(&emmitors[i], &particles));
     }
     char fps_chr[5] = {0};
@@ -214,27 +260,26 @@ int main(void) {
         emmitors[0].position = GetMousePosition();
         emmitors[0].velocity = GetMouseDelta();
         if(IsMouseButtonDown(MOUSE_BUTTON_LEFT)){
-            for(int j = 0; j < 2; ++j){
-                printf("j:%i\n", j);
+            for(int j = 0; j < ammount; ++j){
                 for(int i = 0; i < emmit; ++i) {
                         emmitParticle(&particles, &emmitors[j]);
                 }
             }
         }
-        for(int j = 0; j < 2; ++j){
+        for(int j = 0; j < ammount; ++j){
             updateParticle(&emmitors[j], &particles, delta);
         }
 
-        sprintf(particles_chr, "pActive:%zu, pPool:%zu", emmitors[1].active, particles.capacity);
+        // sprintf(particles_chr, "pActive:%zu, pPool:%zu", emmitors[1].active, particles.capacity);
         sprintf(fps_chr, "%i", GetFPS());
         sprintf(emmit_shower, "eps:%i", emmit);
         BeginDrawing();
             ClearBackground(BLACK);
-            for(int i = 0; i < 2; i++){
+            for(int i = 0; i < ammount; i++){
                 drawParticlesRec(&particles,emmitors[i], delta);
             }
             DrawText(fps_chr, 0, 0, 50, WHITE);
-            DrawText(particles_chr, 0, 50, 50, WHITE);
+            // DrawText(particles_chr, 0, 50, 50, WHITE);
             DrawText(emmit_shower, 0, 100, 50, WHITE);
         EndDrawing();
     }
