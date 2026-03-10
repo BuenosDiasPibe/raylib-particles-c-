@@ -21,7 +21,7 @@ typedef struct {
 
 typedef struct {
     Particle* items;
-    size_t count;
+    size_t used;
     size_t capacity;
 } ParticleList;
 
@@ -40,10 +40,29 @@ typedef struct {
 void particleAlloc(ParticleList *particles){
     particles->items = realloc(particles->items, particles->capacity*sizeof(Particle));
 }
+typedef enum {
+    SUCCESS = 0,
+    IS_FULL,
+    AMMOUNT_REDUCED,
+    ERROR,
+} AskEmmitorAmountResults;
+int askForEmmitorAmmount(ParticleEmittor *emmitor, ParticleList *particles){
+    if(particles->used >= particles->capacity) {
+        emmitor->ammount = 0;
+        return IS_FULL;
+    }
+    if(particles->used+emmitor->ammount > particles->capacity) {
+        emmitor->ammount = particles->capacity - particles->used;
+        particles->used = particles->capacity;
+        return AMMOUNT_REDUCED;
+    }
+    emmitor->index = particles->used;
+    particles->used += emmitor->ammount;
+    return SUCCESS;
+}
 
 void emmitParticle(ParticleList *particles, ParticleEmittor *emmitor){
     if(emmitor->active >= emmitor->ammount+emmitor->index) {
-        printf("eActive: %zu, eIndex : %zu, eAmmount: %zu\n", emmitor->active, emmitor->index, emmitor->ammount);
         return;
     }
     emmitor->active+=1;
@@ -103,7 +122,7 @@ void updateParticle(ParticleEmittor *emmitor, ParticleList *particles, float del
     removeDeathParticles(particles, emmitor);
 }
 
-void drawParticlesRec(ParticleList *particles,ParticleEmittor emmitor, float delta) {
+void drawParticlesRec(ParticleList *particles, ParticleEmittor emmitor, float delta) {
     if(emmitor.active == 0) return;
     printf("e->index: %zu ; e->active: %zu\n", emmitor.index, emmitor.active);
     for(size_t i = emmitor.index; i < emmitor.active+emmitor.index; ++i) {
@@ -111,8 +130,8 @@ void drawParticlesRec(ParticleList *particles,ParticleEmittor emmitor, float del
         DrawRectangleRec(p.rec, p.color);
     }
 }
-void drawParticlesImg(ParticleList *particles, float delta, Texture2D *image) {
-    for(size_t i = 0; i < particles->count; ++i) {
+void drawParticlesImg(ParticleList *particles, ParticleEmittor emmitor, float delta,  Texture2D *image) {
+    for(size_t i = emmitor.index; i < emmitor.active+emmitor.index; ++i) {
         Particle *p = &particles->items[i];
         DrawTexturePro(
             *image,
@@ -142,10 +161,11 @@ void checkFileDropped(Texture2D *img){
 int main(void) {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "particles");
     int emmit = 3;
-    ParticleList particles = {.capacity = 30000000};
+    ParticleList particles = {.capacity = 3030};
     particleAlloc(&particles);
     Color c =  ColorFromHSV(Random()*360, 1, 1);
     c.a = 0;
+    float hue = 200;
     ParticleEmittor emmitors[2] = {0};
     emmitors[0] = (ParticleEmittor){
         .sizeStart = (Vector2){0},
@@ -158,7 +178,6 @@ int main(void) {
         .lifeTime = 0.5f,
         .lifeTimeVariation = 15,
         //.gravity = (Vector2){0,-40}
-        .index = 0,
         .ammount = 3000,
         .active = 0
     };
@@ -167,19 +186,18 @@ int main(void) {
         .sizeStart = (Vector2){.x = 50, .y = 50},
         .sizeVariation = (Vector2){.x = 50, .y = 50},
         .sizeEnd = (Vector2){0},
-        .colorBegin = (Color){200,200,200,255},
+        .colorBegin = ColorFromHSV(hue, 1, 1),
         .colorEnd = c,
         .velocity = (Vector2){0,-30},
         .velocityVariation = (Vector2){.x = 10, .y = 10},
         .lifeTime = 5,
         .lifeTimeVariation = 1,
         .gravity = (Vector2){0,-40},
-        .index = 3000,
-        .ammount = 30000,
+        .ammount = 300,
         .active = 0
     };
-    for(int i = 0; i < 2; ++i) {
-        emmitParticle(&particles, &emmitors[i]);
+    for(int i = 0; i < 2; ++i) { // i need to do this for every emmitor every time i create one
+        printf("result: %i\n", askForEmmitorAmmount(&emmitors[i], &particles));
     }
     char fps_chr[5] = {0};
     char particles_chr[100] = {0};
@@ -188,7 +206,6 @@ int main(void) {
     SetTargetFPS(60);
     float delta = 0;
     Texture2D img = LoadTexture("Acover.png");
-    float hue = 0;
 
     while (!WindowShouldClose()) {
         delta = GetFrameTime()*2;
