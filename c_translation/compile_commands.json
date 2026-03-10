@@ -1,10 +1,10 @@
 [
   {
-    "file": "main.c",
+    "file": "math.c",
     "arguments": [
       "gcc",
       "-O3",
-      "main.c",
+      "math.c",
       "-g",
       "-Iinclude",
       "-o",
@@ -15,11 +15,11 @@
     "output": "main"
   },
   {
-    "file": "math.c",
+    "file": "main.c",
     "arguments": [
       "gcc",
       "-O3",
-      "math.c",
+      "main.c",
       "-g",
       "-Iinclude",
       "-o",
