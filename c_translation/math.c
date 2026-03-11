@@ -1,4 +1,5 @@
 #include "./math.h"
+#include "raylib.h"
 Vector2 vector2Add(Vector2 v1, Vector2 v2) {
     return (Vector2) {
         .x = v1.x+v2.x,
@@ -57,4 +58,17 @@ float ffLerp(float f1, float f2, float t) {
 
 float Random(){ // between 0 and 1
     return (float)(GetRandomValue(0, 327867)) / 327867;
+}
+void RecChangePosition(Rectangle *r, const Vector2 pos){
+    r->x = pos.x;
+    r->y = pos.y;
+}
+Vector2 Vec2Distance(const Vector2 p1, const Vector2 p2){
+    return (Vector2){
+        .x = p1.x-p2.x,
+        .y = p1.y-p2.y
+    };
+}
+Vector2 getRecPosition(const Rectangle r){
+    return (Vector2){.x = r.x, .y = r.y};
 }

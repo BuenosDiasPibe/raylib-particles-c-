@@ -8,8 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "math.h"
-#define SCREEN_WIDTH 1000
-#define SCREEN_HEIGHT 600
+#define SCREEN_WIDTH 1920
+#define SCREEN_HEIGHT 1000
 
 typedef struct {
     Rectangle rec;
@@ -20,8 +20,8 @@ typedef struct {
 } Particle;
 
 typedef struct {
+    Rectangle area;
     Vector2 sizeStart, sizeEnd, sizeVariation;
-    Vector2 position;
     Vector2 velocity, velocityVariation;
     Vector2 gravity;
     Color colorBegin, colorEnd;
@@ -86,13 +86,13 @@ void emmitParticle(ParticleList *particles, ParticleEmittor *emmitor){
 
     float lifetime = emmitor->lifeTime + Random()*emmitor->lifeTimeVariation;
     particles->items[in] = (Particle){
-        .rec            = (Rectangle) {
-            .x          = emmitor->position.x,
-            .y          = emmitor->position.y,
+        .rec            = {
+            .x          = emmitor->area.x + Random()*emmitor->area.width,
+            .y          = emmitor->area.y + Random()*emmitor->area.height,
         },
-        .sizeStart =(Vector2) {
-            .x      = emmitor->sizeStart.x + Random()*emmitor->sizeVariation.x * (GetRandomValue(0, 1) ? -1 : 1),
-            .y     = emmitor->sizeStart.y + Random()*emmitor->sizeVariation.y * (GetRandomValue(0, 1) ? -1 : 1)
+        .sizeStart      = (Vector2) {
+            .x          = emmitor->sizeStart.x + Random()*emmitor->sizeVariation.x * (GetRandomValue(0, 1) ? -1 : 1),
+            .y          = emmitor->sizeStart.y + Random()*emmitor->sizeVariation.y * (GetRandomValue(0, 1) ? -1 : 1)
         },
         .remainLifeTime = lifetime,
         .lifeTime       = lifetime,
@@ -137,14 +137,14 @@ void updateParticle(ParticleEmittor *emmitor, ParticleList *particles, float del
     removeDeathParticles(particles, emmitor);
 }
 
-void drawParticlesRec(ParticleList *particles, ParticleEmittor emmitor, float delta) {
+void drawParticlesRec(const ParticleList *particles, const ParticleEmittor emmitor, const float delta) {
     if(emmitor.active == 0) return;
     for(size_t i = emmitor.index; i < emmitor.active+emmitor.index; ++i) {
         Particle p = particles->items[i];
         DrawRectangleRec(p.rec, p.color);
     }
 }
-void drawParticlesImg(ParticleList *particles, ParticleEmittor emmitor, float delta,  Texture2D *image) {
+void drawParticlesImg(const ParticleList *particles, const ParticleEmittor emmitor, const float delta, const  Texture2D *image) {
     for(size_t i = emmitor.index; i < emmitor.active+emmitor.index; ++i) {
         Particle *p = &particles->items[i];
         DrawTexturePro(
@@ -172,85 +172,94 @@ void checkFileDropped(Texture2D *img){
     }
 }
 
-void test1(ParticleEmittorList *list, ParticleList *particles, Vector2 position){
-    if(particles->used >= particles->capacity) return;
-    Color c = ColorFromHSV(Random()*360, 1, 1);
+int main(void) {
+    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "particles");
+    const size_t max_particles = 65025;
+    const int emmit = 255;
+    ParticleList particles = {.capacity = max_particles };
+    particleAlloc(&particles);
+    float hue = 10;
+    const Color c = ColorFromHSV(Random()*360, 1, 1);
+    ParticleEmittorList emmitor = {0};
     ParticleEmittor emmitorT = {
-        .position = position,
+        .area = {.x = (float)(SCREEN_WIDTH)/2, (float)(SCREEN_HEIGHT)/2, 1,1},
         .sizeStart ={10,10},
         .sizeEnd = (Vector2){0},
         .colorBegin = c,
         .colorEnd = 0,
         .velocityVariation = (Vector2){.x = 20, .y = 20},
-        //.velocity = (Vector2){.x = 20, .y = 20},
-        .lifeTime = 2,
+        .lifeTime = 0,
         .lifeTimeVariation = 5,
-        .gravity = (Vector2){0,-40},
-        .ammount = 255,
+        // .gravity = (Vector2){0,-40},
+        .ammount = max_particles/2,
         .active = 0
     };
-    const int code = askForEmmitorAmmount(&emmitorT, particles);
-    printf("addedWithCode: %i\n", code);
-    if(code != 2) {
-        emmitorListAppend(list, emmitorT);
-    }
-}
+    askForEmmitorAmmount(&emmitorT, &particles);
+    emmitorListAppend(&emmitor, emmitorT);
+    ParticleEmittor emmitorT2 = {
+        .area = {.x = -200, .y = -5, .width = SCREEN_WIDTH-200, .height = SCREEN_HEIGHT},
+        .sizeStart = {0},
+        .sizeEnd = {5,10},
+        .colorBegin = {255,255,255,127},
+        .colorEnd = {0,0,0,50},
+        .velocityVariation = (Vector2){.x = 10, .y = 10},
+        .lifeTime = 10,
+        .lifeTimeVariation = 10,
+        .velocity = (Vector2){40,0},
+        .ammount = 500,
+        .active = 0
+    };
+    askForEmmitorAmmount(&emmitorT2, &particles);
+    emmitorListAppend(&emmitor, emmitorT2);
 
-int main(void) {
-    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "particles");
-    int emmit = 255;
-    ParticleList particles = {.capacity = 65025 };
-    particleAlloc(&particles);
-    float hue = 10;
-    ParticleEmittorList emmitors = {0};
-    test1(&emmitors, &particles, (Vector2){20,20});
-    char fps_chr[5] = {0};
+
+    char fps_chr[20] = {0};
     char particles_chr[100] = {0};
     char emmit_shower[50] = {0};
 
     SetTargetFPS(60);
     float delta = 0;
+    Vector2 rotator = {0};
+    Vector2 mouse = GetMousePosition();
     Texture2D img = LoadTexture("Acover.png");
 
     while (!WindowShouldClose()) {
         delta = GetFrameTime()*2;
+        mouse = GetMousePosition();
+        rotator = (Vector2){
+            .x = emmitor.items[0].area.x - 100*cosf((GetTime()*100)/(3.14159*2)),
+            .y = emmitor.items[0].area.y - 100*sinf((GetTime()*100)/(3.14159*2)),
+        };
+        RecChangePosition(&emmitor.items[0].area, mouse);
         hue = (float)(fmod(hue+delta*10, 360.f));
-        emmitors.items[0].colorBegin = ColorFromHSV(hue, 1, 1);
-        emmitors.items[0].position = GetMousePosition();
-        emmitors.items[0].velocity = GetMouseDelta();
-        //if(IsMouseButtonDown(MOUSE_BUTTON_LEFT)){
-        for(int j = 0; j < emmitors.count; ++j){
+
+        emmitor.items[0].colorBegin = ColorFromHSV(hue, 1, 1);
+        emmitor.items[0].velocity = Vec2Distance(rotator, getRecPosition(emmitorT.area));
+
+        for(int j = 0; j < emmitor.count; j++){
             for(int i = 0; i < emmit*Random(); ++i) {
-                emmitParticle(&particles, &emmitors.items[j]);
+                emmitParticle(&particles, &emmitor.items[j]);
             }
-            updateParticle(&emmitors.items[j], &particles, delta);
-        }
-        //}
-        if(IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)){
-            test1(&emmitors, &particles, GetMousePosition());
-        }
-        if(IsKeyPressed(KEY_ENTER) && emmitors.count > 0){
-            size_t delete =  emmitors.items[emmitors.count-1].ammount;
-            particles.used -= delete;
-            assert(particles.used < particles.capacity);
-            emmitors.count--;
+            updateParticle(&emmitor.items[j], &particles, delta);
         }
 
-        sprintf(fps_chr, "%i", GetFPS());
+        sprintf(fps_chr, "fps: %i", GetFPS());
         sprintf(particles_chr, "used: %zu - capacity: %zu", particles.used, particles.capacity);
         sprintf(emmit_shower, "eps:%i", emmit);
+
         BeginDrawing();
             ClearBackground(BLACK);
-            for(int i = 0; i < emmitors.count; i++) {
-                drawParticlesRec(&particles,emmitors.items[i], delta);
+            for(int i = 0; i < emmitor.count; i++){
+                drawParticlesRec(&particles,emmitor.items[i], delta);
             }
-            DrawText(fps_chr, 0, 0, 50, WHITE);
-            DrawText(particles_chr, 0, 50, 50, WHITE);
-            DrawText(emmit_shower, 0, 100, 50, WHITE);
+            DrawRectangleRec((Rectangle){rotator.x, rotator.y, 30,30}, c);
+            // DrawText(fps_chr, 0, 0, 50, WHITE);
+            // DrawText(particles_chr, 0, 50, 50, WHITE);
+            // DrawText(emmit_shower, 0, 100, 50, WHITE);
         EndDrawing();
     }
     free((void*)particles.items);
-    free((void*)emmitors.items);
+    free((void*)emmitor.items);
     UnloadTexture(img);
 
     CloseWindow();
