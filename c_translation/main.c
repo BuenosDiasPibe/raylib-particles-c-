@@ -20,12 +20,6 @@ typedef struct {
 } Particle;
 
 typedef struct {
-    Particle* items;
-    size_t used;
-    size_t capacity;
-} ParticleList;
-
-typedef struct {
     Vector2 sizeStart, sizeEnd, sizeVariation;
     Vector2 position;
     Vector2 velocity, velocityVariation;
@@ -37,22 +31,45 @@ typedef struct {
     active;
 } ParticleEmittor;
 
-void particleAlloc(ParticleList *particles){
+typedef struct {
+    Particle* items;
+    size_t used;
+    size_t capacity;
+} ParticleList;
+typedef struct {
+    ParticleEmittor *items;
+    size_t count;
+    size_t capacity;
+} ParticleEmittorList;
+
+void particleAlloc(ParticleList *particles) {
     particles->items = realloc(particles->items, particles->capacity*sizeof(Particle));
+    if(particles->items == NULL) exit(1);
 }
+void emmitorListAppend(ParticleEmittorList *list, ParticleEmittor emmitor){
+    if(list->count >= list->capacity) {
+        if(list->capacity == 0) list->capacity = 256;
+        else list->capacity *=2;
+        list->items = realloc(list->items, sizeof(ParticleEmittor) * list->capacity);
+    }
+    list->items[list->count++] = emmitor;
+}
+
 typedef enum {
     SUCCESS = 0,
     IS_FULL,
     AMMOUNT_REDUCED,
     ERROR,
 } AskEmmitorAmountResults;
+
 int askForEmmitorAmmount(ParticleEmittor *emmitor, ParticleList *particles){
     if(particles->used >= particles->capacity) {
         emmitor->ammount = 0;
         return IS_FULL;
     }
     if(particles->used+emmitor->ammount > particles->capacity) {
-        emmitor->ammount = particles->capacity - particles->used;
+        if(particles->used >= particles->capacity-1) return ERROR;
+        emmitor->ammount = particles->capacity - particles->used - 1;
         particles->used = particles->capacity;
         return AMMOUNT_REDUCED;
     }
@@ -62,10 +79,9 @@ int askForEmmitorAmmount(ParticleEmittor *emmitor, ParticleList *particles){
 }
 
 void emmitParticle(ParticleList *particles, ParticleEmittor *emmitor){
-    if(emmitor->active >= emmitor->ammount+emmitor->index) {
-        return;
-    }
-    emmitor->active+=1;
+    if(emmitor->active >= emmitor->ammount+emmitor->index || // check probably unnesesary
+       emmitor->index + emmitor->active+1 >= particles->capacity) return; // +1 to check if next emmitor.active number wouldnt overflow the capacity
+    emmitor->active++;
     size_t in = emmitor->index+emmitor->active;
 
     float lifetime = emmitor->lifeTime + Random()*emmitor->lifeTimeVariation;
@@ -156,95 +172,39 @@ void checkFileDropped(Texture2D *img){
     }
 }
 
-int main(void) {
-    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "particles");
-    int emmit = 300;
-    ParticleList particles = {.capacity = 30300};
-    particleAlloc(&particles);
-    Color c =  ColorFromHSV(Random()*360, 1, 1);
-    c.a = 0;
-    float hue = 10;
-    size_t ammount = 5;
-    ParticleEmittor emmitors[5] = {0};
-    emmitors[0] = (ParticleEmittor){
+void test1(ParticleEmittorList *list, ParticleList *particles, Vector2 position){
+    if(particles->used >= particles->capacity) return;
+    Color c = ColorFromHSV(Random()*360, 1, 1);
+    ParticleEmittor emmitorT = {
+        .position = position,
         .sizeStart = (Vector2){0},
         .sizeVariation = (Vector2){.x = 50, .y = 50},
         .sizeEnd = (Vector2){0},
-        .colorBegin = {0},
-        .colorEnd = c,
+        .colorBegin = c,
+        .colorEnd = 0,
         //.velocity = (Vector2){0,-30},
         .velocityVariation = (Vector2){.x = 10, .y = 10},
         .lifeTime = 0.5f,
         .lifeTimeVariation = 15,
         //.gravity = (Vector2){0,-40}
-        .ammount = 3000,
+        .ammount = 255,
         .active = 0
     };
-    hue+=10;
-    emmitors[1] = (ParticleEmittor){
-        .position = (Vector2){.x = (float)(SCREEN_WIDTH)/2, .y = (float)(SCREEN_HEIGHT)/2},
-        .sizeStart = (Vector2){.x = 50, .y = 50},
-        .sizeVariation = (Vector2){.x = 50, .y = 50},
-        .sizeEnd = (Vector2){0},
-        .colorBegin = ColorFromHSV(hue, 1, 1),
-        .colorEnd = c,
-        .velocity = (Vector2){0,-30},
-        .velocityVariation = (Vector2){.x = 10, .y = 10},
-        .lifeTime = 5,
-        .lifeTimeVariation = 1,
-        .gravity = (Vector2){0,-40},
-        .ammount = 300,
-        .active = 0
-    };
-    hue+=20;
-    emmitors[2] = (ParticleEmittor){
-        .position = (Vector2){100,30},
-        .sizeStart = (Vector2){.x = 50, .y = 50},
-        .sizeEnd = (Vector2){0},
-        .colorBegin = ColorFromHSV(hue, 1, 1),
-        .colorEnd = c,
-        .velocity = (Vector2){0,330},
-        .velocityVariation = (Vector2){.x = 10, .y = 10},
-        .lifeTime = 3,
-        .lifeTimeVariation = 1,
-        .gravity = (Vector2){0,40},
-        .ammount = 3000,
-        .active = 0
-    };
-    hue+=20;
-    emmitors[3] = (ParticleEmittor){
-        .position = (Vector2){SCREEN_WIDTH-30,SCREEN_HEIGHT-30},
-        .sizeStart = (Vector2){50, 50},
-        .sizeEnd = (Vector2){10,10},
-        .colorBegin = ColorFromHSV(hue, 1, 1),
-        .colorEnd = c,
-        .velocity = (Vector2){-20,-330},
-        .velocityVariation = (Vector2){.x = 10, .y = 10},
-        .lifeTime = 3,
-        .lifeTimeVariation = 1,
-        .gravity = (Vector2){0,-40},
-        .ammount = 3000,
-        .active = 0
-    };
-    hue+=30;
-    emmitors[4] = (ParticleEmittor){
-        .position = (Vector2){500,300},
-        .sizeStart = (Vector2){0},
-        .sizeVariation = (Vector2){.x = 50, .y = 50},
-        .sizeEnd = (Vector2){0},
-        .colorBegin =  ColorFromHSV(hue, 1, 1),
-        .colorEnd = c,
-        .velocity = (Vector2){0,330},
-        .velocityVariation = (Vector2){.x = 10, .y = 10},
-        .lifeTime = 3,
-        .lifeTimeVariation = 1,
-        .gravity = (Vector2){0,40},
-        .ammount = 3000,
-        .active = 0
-    };
-    for(int i = 0; i < ammount; ++i) { // i need to do this for every emmitor every time i create one
-        printf("result: %i\n", askForEmmitorAmmount(&emmitors[i], &particles));
+    const int code = askForEmmitorAmmount(&emmitorT, particles);
+    printf("addedWithCode: %i\n", code);
+    if(code != 2) {
+        emmitorListAppend(list, emmitorT);
     }
+}
+
+int main(void) {
+    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "particles");
+    int emmit = 255;
+    ParticleList particles = {.capacity = 30300};
+    particleAlloc(&particles);
+    float hue = 10;
+    ParticleEmittorList emmitors = {0};
+    test1(&emmitors, &particles, (Vector2){20,20});
     char fps_chr[5] = {0};
     char particles_chr[100] = {0};
     char emmit_shower[50] = {0};
@@ -256,34 +216,45 @@ int main(void) {
     while (!WindowShouldClose()) {
         delta = GetFrameTime()*2;
         hue = (float)(fmod(hue+delta*10, 360.f));
-        emmitors[0].colorBegin = ColorFromHSV(hue, 1, 1);
-        emmitors[0].position = GetMousePosition();
-        emmitors[0].velocity = GetMouseDelta();
+        emmitors.items[0].colorBegin = ColorFromHSV(hue, 1, 1);
+        emmitors.items[0].position = GetMousePosition();
+        emmitors.items[0].velocity = GetMouseDelta();
         if(IsMouseButtonDown(MOUSE_BUTTON_LEFT)){
-            for(int j = 0; j < ammount; ++j){
+            for(int j = 0; j < emmitors.count; ++j){
                 for(int i = 0; i < emmit; ++i) {
-                        emmitParticle(&particles, &emmitors[j]);
+                        emmitParticle(&particles, &emmitors.items[j]);
                 }
             }
         }
-        for(int j = 0; j < ammount; ++j){
-            updateParticle(&emmitors[j], &particles, delta);
+        if(IsMouseButtonDown(MOUSE_BUTTON_RIGHT)){
+            test1(&emmitors, &particles, GetMousePosition());
+        }
+        if(IsKeyPressed(KEY_ENTER) && emmitors.count > 0){
+            // why emmitors.count-- -1???? for some reason it gets some random value from the last point, so i need to make sure its the second last
+            size_t delete =  emmitors.items[(emmitors.count--) - 1].ammount;
+            if((int)(particles.used - delete) > 0) {
+                particles.used -= delete;
+            }
+        }
+        for(int j = 0; j < emmitors.count; ++j){
+            updateParticle(&emmitors.items[j], &particles, delta);
         }
 
-        // sprintf(particles_chr, "pActive:%zu, pPool:%zu", emmitors[1].active, particles.capacity);
         sprintf(fps_chr, "%i", GetFPS());
+        sprintf(particles_chr, "used: %zu - capacity: %zu", particles.used, particles.capacity);
         sprintf(emmit_shower, "eps:%i", emmit);
         BeginDrawing();
             ClearBackground(BLACK);
-            for(int i = 0; i < ammount; i++){
-                drawParticlesRec(&particles,emmitors[i], delta);
+            for(int i = 0; i < emmitors.count; i++) {
+                drawParticlesRec(&particles,emmitors.items[i], delta);
             }
             DrawText(fps_chr, 0, 0, 50, WHITE);
-            // DrawText(particles_chr, 0, 50, 50, WHITE);
+            DrawText(particles_chr, 0, 50, 50, WHITE);
             DrawText(emmit_shower, 0, 100, 50, WHITE);
         EndDrawing();
     }
     free((void*)particles.items);
+    free((void*)emmitors.items);
     UnloadTexture(img);
 
     CloseWindow();
