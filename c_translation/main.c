@@ -177,16 +177,14 @@ void test1(ParticleEmittorList *list, ParticleList *particles, Vector2 position)
     Color c = ColorFromHSV(Random()*360, 1, 1);
     ParticleEmittor emmitorT = {
         .position = position,
-        .sizeStart = (Vector2){0},
-        .sizeVariation = (Vector2){.x = 50, .y = 50},
+        .sizeStart = (Vector2){.x = 50, .y = 50},
         .sizeEnd = (Vector2){0},
         .colorBegin = c,
         .colorEnd = 0,
-        //.velocity = (Vector2){0,-30},
-        .velocityVariation = (Vector2){.x = 10, .y = 10},
-        .lifeTime = 0.5f,
+        .velocityVariation = (Vector2){.x = 20, .y = 20},
+        .lifeTime = 5,
         .lifeTimeVariation = 15,
-        //.gravity = (Vector2){0,-40}
+        .gravity = (Vector2){0,-40},
         .ammount = 255,
         .active = 0
     };
@@ -200,7 +198,7 @@ void test1(ParticleEmittorList *list, ParticleList *particles, Vector2 position)
 int main(void) {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "particles");
     int emmit = 255;
-    ParticleList particles = {.capacity = 30300};
+    ParticleList particles = {.capacity = 65025 };
     particleAlloc(&particles);
     float hue = 10;
     ParticleEmittorList emmitors = {0};
@@ -226,15 +224,19 @@ int main(void) {
                 }
             }
         }
-        if(IsMouseButtonDown(MOUSE_BUTTON_RIGHT)){
+        if(IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)){
             test1(&emmitors, &particles, GetMousePosition());
-        }
-        if(IsKeyPressed(KEY_ENTER) && emmitors.count > 0){
-            // why emmitors.count-- -1???? for some reason it gets some random value from the last point, so i need to make sure its the second last
-            size_t delete =  emmitors.items[(emmitors.count--) - 1].ammount;
-            if((int)(particles.used - delete) > 0) {
-                particles.used -= delete;
+            for(int j = 0; j < emmitors.count; ++j){
+                for(int i = 0; i < emmit; ++i) {
+                        emmitParticle(&particles, &emmitors.items[j]);
+                }
             }
+        }
+        if(IsKeyDown(KEY_ENTER) && emmitors.count > 0){
+            size_t delete =  emmitors.items[emmitors.count-1].ammount;
+            particles.used -= delete;
+            assert(particles.used < particles.capacity);
+            emmitors.count--;
         }
         for(int j = 0; j < emmitors.count; ++j){
             updateParticle(&emmitors.items[j], &particles, delta);
