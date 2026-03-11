@@ -79,7 +79,7 @@ int askForEmmitorAmmount(ParticleEmittor *emmitor, ParticleList *particles){
 }
 
 void emmitParticle(ParticleList *particles, ParticleEmittor *emmitor){
-    if(emmitor->active >= emmitor->ammount+emmitor->index || // check probably unnesesary
+    if(emmitor->active >= emmitor->ammount ||
        emmitor->index + emmitor->active+1 >= particles->capacity) return; // +1 to check if next emmitor.active number wouldnt overflow the capacity
     emmitor->active++;
     size_t in = emmitor->index+emmitor->active;
@@ -127,8 +127,8 @@ void updateParticle(ParticleEmittor *emmitor, ParticleList *particles, float del
         p->remainLifeTime -= delta;
         t                  = 1-(float)(p->remainLifeTime/p->lifeTime);
         p->rec             = (Rectangle){
-            .x             = p->rec.x + p->velocity.x*delta,
-            .y             = p->rec.y + p->velocity.y*delta,
+            .x             = p->rec.x + (p->velocity.x*delta),
+            .y             = p->rec.y + (p->velocity.y*delta),
             .width         = ffLerp(p->sizeStart.x, emmitor->sizeEnd.x, t),
             .height        = ffLerp(p->sizeStart.y, emmitor->sizeEnd.y, t)
         };
@@ -181,10 +181,11 @@ void test1(ParticleEmittorList *list, ParticleList *particles, Vector2 position)
         .sizeEnd = (Vector2){0},
         .colorBegin = c,
         .colorEnd = 0,
-        .velocityVariation = (Vector2){.x = 20, .y = 20},
-        .lifeTime = 5,
-        .lifeTimeVariation = 15,
-        .gravity = (Vector2){0,-40},
+        //.velocityVariation = (Vector2){.x = 20, .y = 20},
+        .velocity = (Vector2){.x = 20, .y = 20},
+        .lifeTime = 2,
+        //.lifeTimeVariation = 15,
+        //.gravity = (Vector2){0,-40},
         .ammount = 255,
         .active = 0
     };
@@ -220,19 +221,14 @@ int main(void) {
         if(IsMouseButtonDown(MOUSE_BUTTON_LEFT)){
             for(int j = 0; j < emmitors.count; ++j){
                 for(int i = 0; i < emmit; ++i) {
-                        emmitParticle(&particles, &emmitors.items[j]);
+                    emmitParticle(&particles, &emmitors.items[j]);
                 }
             }
         }
         if(IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)){
             test1(&emmitors, &particles, GetMousePosition());
-            for(int j = 0; j < emmitors.count; ++j){
-                for(int i = 0; i < emmit; ++i) {
-                        emmitParticle(&particles, &emmitors.items[j]);
-                }
-            }
         }
-        if(IsKeyDown(KEY_ENTER) && emmitors.count > 0){
+        if(IsKeyPressed(KEY_ENTER) && emmitors.count > 0){
             size_t delete =  emmitors.items[emmitors.count-1].ammount;
             particles.used -= delete;
             assert(particles.used < particles.capacity);
