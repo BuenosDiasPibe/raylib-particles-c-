@@ -177,15 +177,15 @@ void test1(ParticleEmittorList *list, ParticleList *particles, Vector2 position)
     Color c = ColorFromHSV(Random()*360, 1, 1);
     ParticleEmittor emmitorT = {
         .position = position,
-        .sizeStart = (Vector2){.x = 50, .y = 50},
+        .sizeStart ={10,10},
         .sizeEnd = (Vector2){0},
         .colorBegin = c,
         .colorEnd = 0,
-        //.velocityVariation = (Vector2){.x = 20, .y = 20},
-        .velocity = (Vector2){.x = 20, .y = 20},
+        .velocityVariation = (Vector2){.x = 20, .y = 20},
+        //.velocity = (Vector2){.x = 20, .y = 20},
         .lifeTime = 2,
-        //.lifeTimeVariation = 15,
-        //.gravity = (Vector2){0,-40},
+        .lifeTimeVariation = 5,
+        .gravity = (Vector2){0,-40},
         .ammount = 255,
         .active = 0
     };
@@ -218,13 +218,14 @@ int main(void) {
         emmitors.items[0].colorBegin = ColorFromHSV(hue, 1, 1);
         emmitors.items[0].position = GetMousePosition();
         emmitors.items[0].velocity = GetMouseDelta();
-        if(IsMouseButtonDown(MOUSE_BUTTON_LEFT)){
-            for(int j = 0; j < emmitors.count; ++j){
-                for(int i = 0; i < emmit; ++i) {
-                    emmitParticle(&particles, &emmitors.items[j]);
-                }
+        //if(IsMouseButtonDown(MOUSE_BUTTON_LEFT)){
+        for(int j = 0; j < emmitors.count; ++j){
+            for(int i = 0; i < emmit*Random(); ++i) {
+                emmitParticle(&particles, &emmitors.items[j]);
             }
+            updateParticle(&emmitors.items[j], &particles, delta);
         }
+        //}
         if(IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)){
             test1(&emmitors, &particles, GetMousePosition());
         }
@@ -233,9 +234,6 @@ int main(void) {
             particles.used -= delete;
             assert(particles.used < particles.capacity);
             emmitors.count--;
-        }
-        for(int j = 0; j < emmitors.count; ++j){
-            updateParticle(&emmitors.items[j], &particles, delta);
         }
 
         sprintf(fps_chr, "%i", GetFPS());
