@@ -72,3 +72,11 @@ Vector2 Vec2Distance(const Vector2 p1, const Vector2 p2){
 Vector2 getRecPosition(const Rectangle r){
     return (Vector2){.x = r.x, .y = r.y};
 }
+Color ColorInvert(Color color){
+    return (Color){
+        .r = 255 - color.r,
+        .g = 255 - color.g,
+        .b = 255 - color.b,
+        .a = 255
+    };
+}

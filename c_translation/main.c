@@ -182,7 +182,7 @@ int main(void) {
     const Color c = ColorFromHSV(Random()*360, 1, 1);
     ParticleEmittorList emmitor = {0};
     ParticleEmittor emmitorT = {
-        .area = {.x = (float)(SCREEN_WIDTH)/2, (float)(SCREEN_HEIGHT)/2, 1,1},
+        .area = {(float)(SCREEN_WIDTH)/2, (float)(SCREEN_HEIGHT)/2, 1,1},
         .sizeStart ={10,10},
         .sizeEnd = (Vector2){0},
         .colorBegin = c,
@@ -190,12 +190,25 @@ int main(void) {
         .velocityVariation = (Vector2){.x = 20, .y = 20},
         .lifeTime = 0,
         .lifeTimeVariation = 5,
-        // .gravity = (Vector2){0,-40},
-        .ammount = max_particles/2,
+        .ammount = 1024,
         .active = 0
     };
     askForEmmitorAmmount(&emmitorT, &particles);
     emmitorListAppend(&emmitor, emmitorT);
+    ParticleEmittor emmitorT3 = {
+        .area = {(float)(SCREEN_WIDTH)/2, (float)(SCREEN_HEIGHT)/2, 1,1},
+        .sizeStart ={10,10},
+        .sizeEnd = (Vector2){0},
+        .colorBegin = c,
+        .colorEnd = 0,
+        .velocityVariation = (Vector2){.x = 20, .y = 20},
+        .lifeTime = 0,
+        .lifeTimeVariation = 5,
+        .ammount = 1024,
+        .active = 0
+    };
+    askForEmmitorAmmount(&emmitorT3, &particles);
+    emmitorListAppend(&emmitor, emmitorT3);
     ParticleEmittor emmitorT2 = {
         .area = {.x = -200, .y = -5, .width = SCREEN_WIDTH-200, .height = SCREEN_HEIGHT},
         .sizeStart = {0},
@@ -206,35 +219,45 @@ int main(void) {
         .lifeTime = 10,
         .lifeTimeVariation = 10,
         .velocity = (Vector2){40,0},
-        .ammount = 500,
+        .ammount = max_particles,
         .active = 0
     };
     askForEmmitorAmmount(&emmitorT2, &particles);
     emmitorListAppend(&emmitor, emmitorT2);
 
 
-    char fps_chr[20] = {0};
-    char particles_chr[100] = {0};
-    char emmit_shower[50] = {0};
+    // char fps_chr[20] = {0};
+    // char particles_chr[100] = {0};
+    // char emmit_shower[50] = {0};
 
     SetTargetFPS(60);
     float delta = 0;
     Vector2 rotator = {0};
+    Vector2 rotator2 = {0};
     Vector2 mouse = GetMousePosition();
     Texture2D img = LoadTexture("Acover.png");
 
     while (!WindowShouldClose()) {
         delta = GetFrameTime()*2;
         mouse = GetMousePosition();
+
+        RecChangePosition(&emmitor.items[0].area, mouse);
         rotator = (Vector2){
             .x = emmitor.items[0].area.x - 100*cosf((GetTime()*100)/(3.14159*2)),
             .y = emmitor.items[0].area.y - 100*sinf((GetTime()*100)/(3.14159*2)),
         };
-        RecChangePosition(&emmitor.items[0].area, mouse);
-        hue = (float)(fmod(hue+delta*10, 360.f));
+        emmitor.items[0].velocity = Vec2Distance(getRecPosition(emmitor.items[0].area), rotator);
 
+        RecChangePosition(&emmitor.items[1].area, rotator);
+        rotator2 = (Vector2){
+            .x = emmitor.items[1].area.x - 100*cosf((GetTime()*100)/(3.14159)),
+            .y = emmitor.items[1].area.y - 100*sinf((GetTime()*100)/(3.14159)),
+        };
+        emmitor.items[1].velocity = Vec2Distance(getRecPosition(emmitor.items[1].area),rotator2);
+
+        hue = (float)(fmod(hue+delta*10, 360.f));
         emmitor.items[0].colorBegin = ColorFromHSV(hue, 1, 1);
-        emmitor.items[0].velocity = Vec2Distance(rotator, getRecPosition(emmitorT.area));
+        emmitor.items[1].colorBegin = ColorInvert(emmitor.items[0].colorBegin);
 
         for(int j = 0; j < emmitor.count; j++){
             for(int i = 0; i < emmit*Random(); ++i) {
@@ -243,16 +266,17 @@ int main(void) {
             updateParticle(&emmitor.items[j], &particles, delta);
         }
 
-        sprintf(fps_chr, "fps: %i", GetFPS());
-        sprintf(particles_chr, "used: %zu - capacity: %zu", particles.used, particles.capacity);
-        sprintf(emmit_shower, "eps:%i", emmit);
+        // sprintf(fps_chr, "velocity: %.2f, %.2f", emmitor.items[0].velocity.x, emmitor.items[0].velocity.y);
+        // sprintf(particles_chr, "used: %zu - capacity: %zu", particles.used, particles.capacity);
+        // sprintf(emmit_shower, "eps:%i", emmit);
 
         BeginDrawing();
             ClearBackground(BLACK);
             for(int i = 0; i < emmitor.count; i++){
                 drawParticlesRec(&particles,emmitor.items[i], delta);
             }
-            DrawRectangleRec((Rectangle){rotator.x, rotator.y, 30,30}, c);
+            DrawRectangleRec(emmitor.items[0].area, c);
+            //DrawRectangleRec((Rectangle){rotator2.x, rotator2.y, 30,30}, RAYWHITE);
             // DrawText(fps_chr, 0, 0, 50, WHITE);
             // DrawText(particles_chr, 0, 50, 50, WHITE);
             // DrawText(emmit_shower, 0, 100, 50, WHITE);

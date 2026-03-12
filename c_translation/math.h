@@ -16,5 +16,6 @@ float Random();
 Color colorLerp(Color color1, Color color2, float t);
 Vector2 Vec2Distance(Vector2 p1, Vector2 p2);
 Vector2 getRecPosition(Rectangle r);
+Color ColorInvert(Color color);
 
 #endif // MATH_H
