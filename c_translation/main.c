@@ -60,9 +60,9 @@ typedef enum {
     IS_FULL,
     AMMOUNT_REDUCED,
     ERROR,
-} AskEmmitorAmountResults;
+} AskEmmitorAmountResult;
 
-int askForEmmitorAmmount(ParticleEmittor *emmitor, ParticleList *particles){
+AskEmmitorAmountResult askForEmmitorAmmount(ParticleEmittor *emmitor, ParticleList *particles){
     if(particles->used >= particles->capacity) {
         emmitor->ammount = 0;
         return IS_FULL;
