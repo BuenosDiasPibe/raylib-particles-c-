@@ -8,8 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "math.h"
-#define SCREEN_WIDTH 1920
-#define SCREEN_HEIGHT 1000
+#define SCREEN_WIDTH 1000
+#define SCREEN_HEIGHT 700
 
 typedef struct {
     Rectangle rec;
@@ -172,67 +172,64 @@ void checkFileDropped(Texture2D *img){
     }
 }
 
-void makeFunnyThing(ParticleEmittorList *emmitor, ParticleList *particles){
+void makeFunnyThing(ParticleEmittorList *emmitor, ParticleList *particles, const int ammount){
     const Color c = ColorFromHSV(Random()*360, 1, 1);
     ParticleEmittor emmitorT = {
         .area = {(float)(SCREEN_WIDTH)/2, (float)(SCREEN_HEIGHT)/2, 1,1},
         .sizeStart ={10,10},
         .sizeEnd = (Vector2){0},
-        .colorBegin = c,
-        .colorEnd = 0,
+        .colorEnd = c,
+        .colorBegin = WHITE,
         .velocityVariation = (Vector2){.x = 20, .y = 20},
         .lifeTime = 0,
         .lifeTimeVariation = 5,
-        .ammount = 100,
+        .ammount = ammount,
     };
     askForEmmitorAmmount(&emmitorT, particles);
     emmitorListAppend(emmitor, emmitorT);
 }
-void updateFunnyThing(ParticleEmittorList *emmitor, const Vector2 pos){
+void updateFunnyThing(ParticleEmittorList *emmitor, const Vector2 pos,const float delta){
     const float time = GetTime();
     Vector2 rotator = pos;
     Vector2 past_velocity = {0};
-    Vector2 new_velocity = {0};
     float s, c = 0;
     for(int e = 0; e < emmitor->count; e++){
         RecChangePosition(&emmitor->items[e].area, rotator);
         past_velocity = emmitor->items[e].velocity;
-        s = 100*sinf(e*time*e / 20*3.14159);
-        c = 100*cosf(e*time*time/ 20*3.14159);
+        s = 40 * sinf((e*time*(e+1))/(3.14159*200));
+        c = 40 * cosf((e*time*(e+1))/(3.14159*200));
         rotator = (Vector2){
-            .x = emmitor->items[e].area.x - c,
-            .y = emmitor->items[e].area.y - s,
+            .x = emmitor->items[e].area.x - s * cosf(time),
+            .y = emmitor->items[e].area.y - c * cos(-time)
         };
-        new_velocity = Vec2Distance(getRecPosition(emmitor->items[e].area), rotator);
-        emmitor->items[e].velocity = Vec2Distance(new_velocity, past_velocity);
+        emmitor->items[e].gravity = Vec2Distance(getRecPosition(emmitor->items[e].area), rotator);
+        emmitor->items[e].velocity = Vec2Distance(emmitor->items[e].gravity, past_velocity);
     }
 }
 
 int main(void) {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "particles");
     const size_t max_particles = 65025*10;
-    const int emmit = 1000;
+    const int emmit = 1500;
     ParticleList particles = {.capacity = max_particles };
     ParticleEmittorList emmitor = {0};
     particleAlloc(&particles);
     float hue = 10;
-    for(int i = 0; i < 100; i++) makeFunnyThing(&emmitor, &particles);
+    for(int i = 0; i < 20; i++) makeFunnyThing(&emmitor, &particles, emmit);
 
-    //char fps_chr[20] = {0};
+    char fps_chr[20] = {0};
     //char particles_chr[100] = {0};
     // char emmit_shower[50] = {0};
 
     //SetTargetFPS(60);
     float delta = 0;
-    Vector2 rotator = {0};
-    Vector2 rotator2 = {0};
     Vector2 mouse = GetMousePosition();
     Texture2D img = LoadTexture("Acover.png");
 
     while (!WindowShouldClose()) {
         delta = GetFrameTime()*2;
         mouse = GetMousePosition();
-        updateFunnyThing(&emmitor, mouse);
+        updateFunnyThing(&emmitor, mouse, delta);
 
         hue = (float)(fmod(hue+delta*10, 360.f));
         emmitor.items[0].colorBegin = ColorFromHSV(hue, 1, 1);
@@ -245,7 +242,7 @@ int main(void) {
             updateParticle(&emmitor.items[j], &particles, delta);
         }
 
-        //sprintf(fps_chr, "fps: %i",GetFPS());
+        sprintf(fps_chr, "fps: %i",GetFPS());
         //sprintf(particles_chr, "onScreen: %zu - capacity: %zu", emmitorT.active, particles.capacity);
         // sprintf(emmit_shower, "eps:%i", emmit);
 
@@ -256,8 +253,7 @@ int main(void) {
                 //Vector2 coso = getRecPosition(emmitor.items[i].area);
                 //DrawRectangleRec((Rectangle){.x = coso.x, .y = coso.y, 20,20}, emmitor.items[i].colorBegin);
             }
-            DrawRectangleRec((Rectangle){rotator2.x, rotator2.y, 30,30}, RAYWHITE);
-            //DrawText(fps_chr, 0, 0, 50, WHITE);
+            DrawText(fps_chr, 0, 0, 50, WHITE);
             //DrawText(particles_chr, 0, 50, 50, WHITE);
             // DrawText(emmit_shower, 0, 100, 50, WHITE);
         EndDrawing();
