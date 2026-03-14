@@ -8,6 +8,7 @@ Vector2 Vector2FloatMul(const Vector2 v,const float f);
 Vector2 Vec2Distance(const Vector2 p1, const Vector2 p2);
 Vector2 getRecPosition(const Rectangle r);
 void vector2Sub(Vector2 *v1, Vector2 v2);
+void vector2FloatSub(Vector2 *v, const float f);
 
 void RecVec2AddPosition(Rectangle *r1, const Vector2 v2);
 void RecChangePosition(Rectangle *r, const Vector2 pos);

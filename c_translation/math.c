@@ -79,3 +79,8 @@ Color ColorInvert(Color color){
         .a = 255
     };
 }
+
+void vector2FloatSub(Vector2 *v, const float f) {
+    v->x -= f;
+    v->y -= f;
+}
