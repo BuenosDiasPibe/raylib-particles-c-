@@ -122,7 +122,7 @@ void removeDeathParticles(ParticleList *particles, ParticleEmittor *emmitor){
 void updateParticle(ParticleEmittor *emmitor, ParticleList *particles, const float delta) {
     float t = 0;
     Particle *p;
-    for(int i = emmitor->index; i < emmitor->active+emmitor->index; ++i) {
+    for(size_t i = emmitor->index; i < emmitor->active+emmitor->index; ++i) {
         p = &particles->items[i];
         vector2Sub(&p->velocity, Vector2FloatMul(emmitor->gravity, delta));
         p->remainLifeTime -= delta;
@@ -138,13 +138,13 @@ void updateParticle(ParticleEmittor *emmitor, ParticleList *particles, const flo
     removeDeathParticles(particles, emmitor);
 }
 
-void drawParticlesRec(const ParticleList *particles, const ParticleEmittor emmitor, const float delta) {
+void drawParticlesRec(const ParticleList *particles, const ParticleEmittor emmitor) {
     for(size_t i = emmitor.index; i < emmitor.active+emmitor.index; ++i) {
         Particle p = particles->items[i];
         DrawRectangleRec(p.rec, p.color);
     }
 }
-void drawParticlesImg(const ParticleList *particles, const ParticleEmittor emmitor, const float delta, const  Texture2D *image) {
+void drawParticlesImg(const ParticleList *particles, const ParticleEmittor emmitor, const  Texture2D *image) {
     for(size_t i = emmitor.index; i < emmitor.active+emmitor.index; ++i) {
         Particle *p = &particles->items[i];
         DrawTexturePro(
@@ -189,18 +189,17 @@ void makeFunnyThing(ParticleEmittorList *emmitor, ParticleList *particles, const
     askForEmmitorAmmount(&emmitorT, particles);
     emmitorListAppend(emmitor, emmitorT);
 }
-void updateFunnyThing(ParticleEmittorList *emmitor, const Vector2 pos,const float delta, const float hue){
+void updateFunnyThing(ParticleEmittorList *emmitor, const Vector2 pos, const float hue){
     const float time = GetTime();
     Vector2 rotator = pos;
     Vector2 past_velocity = {0};
-    Color new_c = {0};
     float s, c = 1;
-    for(int e = 0; e < emmitor->count; e++){
+    for(size_t e = 0; e < emmitor->count; e++){
         RecChangePosition(&emmitor->items[e].area, rotator);
         past_velocity = emmitor->items[e].velocity;
         s =   sinf((time*(e+hue))/(PI*e+hue));
         c =   cosf((time*(e+hue))/(PI*e+hue));
-        for(int i = 0; i < e; i++){
+        for(size_t i = 0; i < e; i++){
             s +=  sinf(( time  * PI * hue * e) / (PI * 300) );
             c +=  cosf(( time * hue * PI * e) / (PI * 300) );
         }
@@ -229,8 +228,9 @@ int main(void) {
         .sizeEnd = (Vector2){0},
         .colorBegin = ColorFromHSV(hue, 1, 1),
         .velocityVariation = (Vector2){.x = 20, .y = 20},
-        .lifeTime = 0,
-        .lifeTimeVariation = 20,
+        .gravity = {.x = 0, .y = -5},
+        .lifeTime = 5,
+        .lifeTimeVariation = 5,
         .ammount = max_particles,
     };
     askForEmmitorAmmount(&emmitor, &particles);
@@ -238,15 +238,17 @@ int main(void) {
     char fps_chr[20] = {0};
     char particle_count[100] = {0};
 
-    //SetTargetFPS(60);
+    SetTargetFPS(60);
     float delta = 0;
-    const Vector2 mouse = {(float)(SCREEN_WIDTH)/2, (float)(SCREEN_HEIGHT)/2};
+    //const Vector2 mouse = {(float)(SCREEN_WIDTH)/2, (float)(SCREEN_HEIGHT)/2};
     Texture2D img = LoadTexture("Acover.png");
 
     while (!WindowShouldClose()) {
         delta = GetFrameTime()*2;
         hue = (float)(fmod(hue+delta*10, 360.f));
-        if(GetFPS() > 60) emmit++;
+        emmitor.colorBegin = ColorFromHSV(hue, 1, 1);
+
+        if(GetFPS() >= 60) emmit++;
         else emmit--;
 
         for(int i = 0; i < emmit; ++i) {
@@ -259,7 +261,7 @@ int main(void) {
 
         BeginDrawing();
             ClearBackground(BLACK);
-            drawParticlesRec(&particles,emmitor, delta);
+            drawParticlesRec(&particles,emmitor);
             DrawText(fps_chr, 0, 0, 50, WHITE);
             DrawText(particle_count, 0, 50, 50, WHITE);
         EndDrawing();
