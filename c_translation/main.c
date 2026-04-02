@@ -9,7 +9,7 @@
 #include <string.h>
 #include "math.h"
 #define SCREEN_WIDTH 1000
-#define SCREEN_HEIGHT 1000
+#define SCREEN_HEIGHT 700
 
 typedef struct {
     Rectangle rec;
@@ -189,23 +189,22 @@ void makeFunnyThing(ParticleEmittorList *emmitor, ParticleList *particles, const
     askForEmmitorAmmount(&emmitorT, particles);
     emmitorListAppend(emmitor, emmitorT);
 }
-void updateFunnyThing(ParticleEmittorList *emmitor, const Vector2 pos, const float hue){
-    const float time = GetTime();
+void updateFunnyThing(ParticleEmittorList *emmitor, const Vector2 pos, const float hue, const float time){
     Vector2 rotator = pos;
     Vector2 past_velocity = {0};
     float s, c = 1;
     for(size_t e = 0; e < emmitor->count; e++){
         RecChangePosition(&emmitor->items[e].area, rotator);
         past_velocity = emmitor->items[e].velocity;
-        s =   sinf((time*(e+hue))/(PI*e+hue));
-        c =   cosf((time*(e+hue))/(PI*e+hue));
+        s =   sinf(((e*e*time))/(PI*hue));
+        c =   cosf(((e*PI*2*time))/(PI*e+hue));
         for(size_t i = 0; i < e; i++){
-            s +=  sinf(( time  * PI * hue * e) / (PI * 300) );
-            c +=  cosf(( time * hue * PI * e) / (PI * 300) );
+            s +=  cosf((  PI*2 * e*time ) / (PI*300+e) );
+            c +=  sinf(( hue *e) / (PI*300+e) );
         }
         rotator = (Vector2){
-            .x = emmitor->items[e].area.x - s,
-            .y = emmitor->items[e].area.y - c
+            .x = emmitor->items[e].area.x - s+(s/7)*cosf(time),
+            .y = emmitor->items[e].area.y - c+(c/7)*sinf(time),
         };
 
         emmitor->items[e].gravity = Vec2Distance(getRecPosition(emmitor->items[e].area), rotator);
@@ -217,56 +216,72 @@ void updateFunnyThing(ParticleEmittorList *emmitor, const Vector2 pos, const flo
 
 int main(void) {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "particles");
-    const size_t max_particles = 65025*10;
-    int emmit = 500;
+    const size_t max_particles = 20000;
+    int emmit = 5;
     ParticleList particles = {.capacity = max_particles };
     particleAlloc(&particles);
     float hue = 10;
-    ParticleEmittor emmitor = {
-        .area = {(float)(SCREEN_WIDTH)/2, (float)(SCREEN_HEIGHT)/2, 1,1},
-        .sizeStart ={10,10},
-        .sizeEnd = (Vector2){0},
-        .colorBegin = ColorFromHSV(hue, 1, 1),
-        .velocityVariation = (Vector2){.x = 20, .y = 20},
-        .gravity = {.x = 0, .y = -5},
-        .lifeTime = 5,
-        .lifeTimeVariation = 5,
-        .ammount = max_particles,
-    };
-    askForEmmitorAmmount(&emmitor, &particles);
+    ParticleEmittorList list = {0};
+    const size_t ammount_particle_emitters = 100;
+    for(size_t i = 0; i < ammount_particle_emitters; i++){
+        ParticleEmittor emmitor = {
+            .area = {(float)(SCREEN_WIDTH)/2, (float)(SCREEN_HEIGHT)/2, 10,10},
+            .sizeStart ={10,10},
+            .sizeEnd = {10,10},
+            .colorBegin = ColorFromHSV(hue, 1, 1),
+            //.colorEnd = BLACK,
+            .velocityVariation = (Vector2){.x = 20, .y = 20},
+            .gravity = {.x = 0, .y = -5},
+            .lifeTime = 1,
+            .lifeTimeVariation = 3,
+            .ammount = max_particles/ammount_particle_emitters,
+        };
+        askForEmmitorAmmount(&emmitor, &particles);
+        emmitorListAppend(&list, emmitor);
+    }
 
     char fps_chr[20] = {0};
     char particle_count[100] = {0};
 
     SetTargetFPS(60);
     float delta = 0;
-    //const Vector2 mouse = {(float)(SCREEN_WIDTH)/2, (float)(SCREEN_HEIGHT)/2};
+    const Vector2 mouse = {(float)(SCREEN_WIDTH)/2, (float)(SCREEN_HEIGHT)/2};
     Texture2D img = LoadTexture("Acover.png");
 
+    Color bgClear = ColorFromHSV(hue, 1, 0.5f);
+    float time = 0;
+
     while (!WindowShouldClose()) {
+        time = GetTime();
+        bgClear = ColorFromHSV(hue, 0.8f, .3f);
         delta = GetFrameTime()*2;
         hue = (float)(fmod(hue+delta*10, 360.f));
-        emmitor.colorBegin = ColorFromHSV(hue, 1, 1);
 
-        if(GetFPS() >= 60) emmit++;
-        else emmit--;
-
-        for(int i = 0; i < emmit; ++i) {
-            emmitParticle(&particles, &emmitor);
+        for(size_t i = 0; i < list.count; i++) {
+            for(int e = 0; e < emmit; ++e) {
+                emmitParticle(&particles, &list.items[i]);
+            }
         }
-        updateParticle(&emmitor, &particles, delta);
+        updateFunnyThing(&list, mouse, hue, time);
+        for(size_t i = 0; i < list.count; i++) {
+            updateParticle(&list.items[i], &particles, delta);
+        }
 
         sprintf(fps_chr, "fps: %i",GetFPS());
-        sprintf(particle_count, "p->active: %zu ; p->count: %zu",emmitor.active, particles.used);
+        //sprintf(particle_count, "p->active: %zu ; p->count: %zu",emmitor.active, particles.used);
 
         BeginDrawing();
-            ClearBackground(BLACK);
-            drawParticlesRec(&particles,emmitor);
+            ClearBackground(bgClear);
+            for(size_t i = 0; i < list.count; i++) {
+                drawParticlesRec(&particles,list.items[i]);
+                //DrawRectangleRec(list.items[i].area, list.items[i].colorBegin);
+            }
             DrawText(fps_chr, 0, 0, 50, WHITE);
             DrawText(particle_count, 0, 50, 50, WHITE);
         EndDrawing();
     }
     free((void*)particles.items);
+    free((void*)list.items);
     UnloadTexture(img);
 
     CloseWindow();
